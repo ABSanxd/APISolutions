@@ -1,5 +1,6 @@
 package com.api.modules.user.dto;
 
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -12,7 +13,8 @@ public class UserRequestDTO {
     private String name;
 
     @NotBlank(message = "El email es obligatorio")
-    @Email(message = "Debe ser un email válido")
+    @Email(message = "El formato del correo no es válido.")
+    @Column(unique = true)
     private String email;
 
     @NotBlank(message = "La contraseña es obligatoria")

@@ -3,6 +3,7 @@ package com.api.modules.user.controller;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,10 +13,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.api.common.response.ApiResponse;
 import com.api.modules.user.dto.UserRequestDTO;
 import com.api.modules.user.dto.UserResponseDTO;
 import com.api.modules.user.service.UserService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 // Recibe las peticiones HTTP (REST). Solo coordina. 
@@ -27,27 +30,34 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
-    public List<UserResponseDTO> getAllUsers() {
-        return userService.getAll();
+    public ResponseEntity<ApiResponse<List<UserResponseDTO>>> getAllUsers() {
+        List<UserResponseDTO> users = userService.getAll();
+        return ResponseEntity.ok(ApiResponse.success(users, "Usuarios obtenidos correctamente"));
     }
 
     @GetMapping("/{id}")
-    public UserResponseDTO getUserById(@PathVariable UUID id) {
-        return userService.getById(id);
+    public ResponseEntity<ApiResponse<UserResponseDTO>> getUserById(@PathVariable UUID id) {
+        UserResponseDTO user = userService.getById(id);
+        return ResponseEntity.ok(ApiResponse.success(user, "Usuario encontrado"));
     }
 
     @PostMapping
-    public UserResponseDTO createUser(@RequestBody UserRequestDTO userDto) {
-        return userService.create(userDto);
+    public ResponseEntity<ApiResponse<UserResponseDTO>> createUser(@Valid @RequestBody UserRequestDTO userDto) {
+        UserResponseDTO createdUser = userService.create(userDto);
+        return ResponseEntity.ok(ApiResponse.success(createdUser, "Usuario creado exitosamente"));
     }
 
     @PutMapping("/{id}")
-    public UserResponseDTO updateUser(@PathVariable UUID id, @RequestBody UserRequestDTO userDto) {
-        return userService.update(id, userDto);
+    public ResponseEntity<ApiResponse<UserResponseDTO>> updateUser(
+            @PathVariable UUID id,
+            @Valid @RequestBody UserRequestDTO userDto) {
+        UserResponseDTO updatedUser = userService.update(id, userDto);
+        return ResponseEntity.ok(ApiResponse.success(updatedUser, "Usuario actualizado correctamente"));
     }
 
     @DeleteMapping("/{id}")
-    public void deleteUser(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable UUID id) {
         userService.delete(id);
+        return ResponseEntity.ok(ApiResponse.success(null, "Usuario eliminado correctamente"));
     }
 }

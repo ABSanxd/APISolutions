@@ -2,6 +2,7 @@ package com.api.common.exception;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -9,6 +10,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import com.api.common.response.ApiResponse;
 
@@ -44,5 +46,20 @@ public class GlobalExceptionHandler {
                 "Error interno del servidor: " + ex.getMessage(),
                 HttpStatus.INTERNAL_SERVER_ERROR.value());
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<Object> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        String requiredType = Optional.ofNullable(ex.getRequiredType())
+                .map(Class::getSimpleName)
+                .orElse("desconocido");
+
+        String message = String.format(
+                "El parámetro '%s' debe ser de tipo %s",
+                ex.getName(),
+                requiredType);
+
+        ApiResponse<Object> response = ApiResponse.fail(message, HttpStatus.BAD_REQUEST.value());
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 }
