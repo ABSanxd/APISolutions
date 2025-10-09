@@ -1,12 +1,12 @@
-package com.api.repositories;
+package com.api.modules.user.repository;
 
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.api.models.User;
+import com.api.modules.user.model.User;
 
-// Es una interfaz que extiende de la interfaz proporcionada por Lombok
+// Interactúa con la base de datos (JPA).
 public interface UserRepository extends JpaRepository<User, UUID> {
 
 }
