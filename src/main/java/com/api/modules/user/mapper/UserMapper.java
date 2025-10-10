@@ -1,17 +1,25 @@
 package com.api.modules.user.mapper;
 
-import com.api.modules.user.dto.UserRequestDTO;
+import com.api.modules.user.dto.UserCreateDTO;
 import com.api.modules.user.dto.UserResponseDTO;
+import com.api.modules.user.dto.UserUpdateDTO;
 import com.api.modules.user.model.User;
 
 public class UserMapper {
 
-    public static User toEntity(UserRequestDTO dto) {
+    public static User toEntity(UserCreateDTO dto) {
         User user = new User();
         user.setName(dto.getName());
         user.setEmail(dto.getEmail());
         user.setPassword(dto.getPassword());
         return user;
+    }
+
+    public static void updateEntity(User user, UserUpdateDTO dto) {
+        if (dto.getName() != null)
+            user.setName(dto.getName());
+        if (dto.getPassword() != null)
+            user.setPassword(dto.getPassword());
     }
 
     public static UserResponseDTO toResponseDTO(User user) {

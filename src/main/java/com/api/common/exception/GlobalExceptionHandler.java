@@ -42,8 +42,15 @@ public class GlobalExceptionHandler {
     // Manejo de cualquier otra excepción no controlada
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Object>> handleGenericException(Exception ex) {
+        String message = ex.getMessage();
+
+        if (message != null && !message.isBlank() && !message.startsWith("Failed to convert")) {
+            ApiResponse<Object> response = ApiResponse.fail(message, HttpStatus.BAD_REQUEST.value());
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
+
         ApiResponse<Object> response = ApiResponse.error(
-                "Error interno del servidor: " + ex.getMessage(),
+                "Error interno del servidor",
                 HttpStatus.INTERNAL_SERVER_ERROR.value());
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
     }

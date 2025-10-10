@@ -3,6 +3,7 @@ package com.api.modules.user.controller;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,8 +15,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.api.common.response.ApiResponse;
-import com.api.modules.user.dto.UserRequestDTO;
+import com.api.modules.user.dto.UserCreateDTO;
 import com.api.modules.user.dto.UserResponseDTO;
+import com.api.modules.user.dto.UserUpdateDTO;
 import com.api.modules.user.service.UserService;
 
 import jakarta.validation.Valid;
@@ -42,15 +44,17 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<UserResponseDTO>> createUser(@Valid @RequestBody UserRequestDTO userDto) {
+    public ResponseEntity<ApiResponse<UserResponseDTO>> createUser(@Valid @RequestBody UserCreateDTO userDto) {
         UserResponseDTO createdUser = userService.create(userDto);
-        return ResponseEntity.ok(ApiResponse.success(createdUser, "Usuario creado exitosamente"));
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.success(createdUser, "Usuario creado exitosamente"));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<UserResponseDTO>> updateUser(
             @PathVariable UUID id,
-            @Valid @RequestBody UserRequestDTO userDto) {
+            @Valid @RequestBody UserUpdateDTO userDto) {
         UserResponseDTO updatedUser = userService.update(id, userDto);
         return ResponseEntity.ok(ApiResponse.success(updatedUser, "Usuario actualizado correctamente"));
     }
@@ -58,6 +62,8 @@ public class UserController {
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable UUID id) {
         userService.delete(id);
-        return ResponseEntity.ok(ApiResponse.success(null, "Usuario eliminado correctamente"));
+        return ResponseEntity
+                .status(HttpStatus.NO_CONTENT)
+                .body(ApiResponse.success(null, "Usuario eliminado correctamente"));
     }
 }
