@@ -1,6 +1,8 @@
 package com.api.modules.user.service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Period;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,53 +27,67 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     // Obtener todos los usuarios
-    public List<UserResponseDTO> getAll() {
+    public List<UserResponseDTO> getAllUsers() {
         return userRepository.findAll().stream()
                 .map(UserMapper::toResponseDTO)
                 .toList();
     }
 
     // Obtener usuario por ID
-    public UserResponseDTO getById(UUID id) {
+    public UserResponseDTO getUserById(UUID id) {
         return userRepository.findById(id)
                 .map(UserMapper::toResponseDTO)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
     }
 
     // Crear un nuevo usuario (mas adelante cifrado de contraseña)
-    public UserResponseDTO create(UserCreateDTO dto) {
+    public UserResponseDTO createUser(UserCreateDTO dto) {
         if (userRepository.existsByEmail(dto.getEmail())) {
             throw new DataIntegrityViolationException("El correo electrónico ya está registrado.");
         }
+        validarEdadMinima(dto.getBirthDate());
 
         User user = UserMapper.toEntity(dto);
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
 
-        User saved = userRepository.save(user);
-        return UserMapper.toResponseDTO(saved);
+        User savedUser = userRepository.save(user);
+        return UserMapper.toResponseDTO(savedUser);
     }
 
     // Actualizar usuario existente
-    public UserResponseDTO update(UUID id, UserUpdateDTO dto) {
+    public UserResponseDTO updateUser(UUID id, UserUpdateDTO dto) {
         return userRepository.findById(id)
                 .map(user -> {
-                    user.setName(dto.getName());
+                    UserMapper.updateEntity(user, dto);
                     if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
                         user.setPassword(passwordEncoder.encode(dto.getPassword()));
                     }
                     user.setUpdatedAt(LocalDateTime.now());
 
-                    User updated = userRepository.save(user);
-                    return UserMapper.toResponseDTO(updated);
+                    User updatedUser = userRepository.save(user);
+                    return UserMapper.toResponseDTO(updatedUser);
                 })
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado para actualizar"));
     }
 
     // Eliminar usuario por ID
-    public void delete(UUID id) {
+    public void deleteUser(UUID id) {
         if (!userRepository.existsById(id)) {
             throw new RuntimeException("Usuario no encontrado para eliminar");
         }
         userRepository.deleteById(id);
+    }
+
+    private void validarEdadMinima(LocalDate birthDate) {
+        if (birthDate == null) {
+            throw new IllegalArgumentException("La fecha de nacimiento es obligatoria.");
+        }
+
+        LocalDate hoy = LocalDate.now();
+        Period edad = Period.between(birthDate, hoy);
+
+        if (edad.getYears() < 9) {
+            throw new IllegalArgumentException("Debes tener al menos 9 años para registrarte.");
+        }
     }
 }

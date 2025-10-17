@@ -33,19 +33,19 @@ public class UserController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<UserResponseDTO>>> getAllUsers() {
-        List<UserResponseDTO> users = userService.getAll();
+        List<UserResponseDTO> users = userService.getAllUsers();
         return ResponseEntity.ok(ApiResponse.success(users, "Usuarios obtenidos correctamente"));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<UserResponseDTO>> getUserById(@PathVariable UUID id) {
-        UserResponseDTO user = userService.getById(id);
+        UserResponseDTO user = userService.getUserById(id);
         return ResponseEntity.ok(ApiResponse.success(user, "Usuario encontrado"));
     }
 
     @PostMapping
     public ResponseEntity<ApiResponse<UserResponseDTO>> createUser(@Valid @RequestBody UserCreateDTO userDto) {
-        UserResponseDTO createdUser = userService.create(userDto);
+        UserResponseDTO createdUser = userService.createUser(userDto);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ApiResponse.success(createdUser, "Usuario creado exitosamente"));
@@ -55,13 +55,13 @@ public class UserController {
     public ResponseEntity<ApiResponse<UserResponseDTO>> updateUser(
             @PathVariable UUID id,
             @Valid @RequestBody UserUpdateDTO userDto) {
-        UserResponseDTO updatedUser = userService.update(id, userDto);
+        UserResponseDTO updatedUser = userService.updateUser(id, userDto);
         return ResponseEntity.ok(ApiResponse.success(updatedUser, "Usuario actualizado correctamente"));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable UUID id) {
-        userService.delete(id);
+        userService.deleteUser(id);
         return ResponseEntity
                 .status(HttpStatus.NO_CONTENT)
                 .body(ApiResponse.success(null, "Usuario eliminado correctamente"));

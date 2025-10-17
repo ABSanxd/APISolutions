@@ -12,6 +12,10 @@ public class UserMapper {
         user.setName(dto.getName());
         user.setEmail(dto.getEmail());
         user.setPassword(dto.getPassword());
+        user.setDepartment(dto.getDepartment());
+        user.setProvince(dto.getProvince());
+        user.setDistrict(dto.getDistrict());
+        user.setBirthDate(dto.getBirthDate());
         return user;
     }
 
@@ -19,7 +23,13 @@ public class UserMapper {
         if (dto.getName() != null)
             user.setName(dto.getName());
         if (dto.getPassword() != null)
-            user.setPassword(dto.getPassword());
+            user.setPassword(dto.getPassword()); 
+        if (dto.getDepartment() != null)
+            user.setDepartment(dto.getDepartment());
+        if (dto.getProvince() != null)
+            user.setProvince(dto.getProvince());
+        if (dto.getDistrict() != null)
+            user.setDistrict(dto.getDistrict());
     }
 
     public static UserResponseDTO toResponseDTO(User user) {
@@ -31,6 +41,10 @@ public class UserMapper {
         dto.setUserLevel(user.getUserLevel());
         dto.setUserXp(user.getUserXp());
         dto.setStatus(user.getStatus());
+        dto.setDepartment(user.getDepartment());
+        dto.setProvince(user.getProvince());
+        dto.setDistrict(user.getDistrict());
+        dto.setBirthDate(user.getBirthDate());
         dto.setCreatedAt(user.getCreatedAt());
         return dto;
     }

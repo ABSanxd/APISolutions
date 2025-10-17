@@ -1,5 +1,6 @@
 package com.api.modules.user.model;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -17,8 +18,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Data;
 
-@Data //Parte de la Data
-@Entity //Es una entidad
+@Data // Parte de la Data
+@Entity // Es una entidad
 @Table(name = "users")
 public class User {
     @Id
@@ -44,6 +45,18 @@ public class User {
 
     @Column(nullable = false)
     private int userXp = 0;
+
+    @Column(nullable = false)
+    private String department;
+
+    @Column(nullable = false)
+    private String province;
+
+    @Column(nullable = false)
+    private String district;
+
+    @Column(nullable = false)
+    private LocalDate birthDate;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
