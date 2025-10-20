@@ -4,7 +4,8 @@ package com.api.common.enums;
 public enum Status {
     PENDIENTE,
     ADOPTADO,
-    ACTIVO,
-    INACTIVO,
-    ELIMINADO
+    ACTIVO, //ads
+    INACTIVO, //ads
+    ELIMINADO,
+    EXPIRADO //ads
 }
