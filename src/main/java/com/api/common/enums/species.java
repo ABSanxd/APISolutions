@@ -6,5 +6,5 @@ public enum species {
     GATO,
     AVE,
     CONEJO,
-    OTTRO
+    OTRO
 }
