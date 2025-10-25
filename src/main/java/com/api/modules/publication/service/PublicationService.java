@@ -2,6 +2,7 @@ package com.api.modules.publication.service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -30,9 +31,9 @@ public class PublicationService {
 	}
 
 	public ApiResponse<PublicartionResponseDTO> create(String userIdHeader, ControllerCreateDTO dto) {
-		java.util.UUID userUuid;
+		UUID userUuid;
 		try {
-			userUuid = java.util.UUID.fromString(userIdHeader);
+			userUuid = UUID.fromString(userIdHeader);
 		} catch (Exception ex) {
 			return ApiResponse.fail("X-User-Id inválido: debe ser UUID con formato estándar (36 caracteres)", 400);
 		}
@@ -49,6 +50,19 @@ public class PublicationService {
 	public ApiResponse<List<PublicartionResponseDTO>> listAll() {
 		List<Publication> list = repository.findAll();
 		return ApiResponse.success(list.stream().map(PublicationMapper::toResponseDTO).collect(Collectors.toList()));
+	}
+
+	// Nuevo método para listar publicaciones por usuario
+	public ApiResponse<List<PublicartionResponseDTO>> listByUserId(String userIdStr) {
+		try {
+			UUID userId = UUID.fromString(userIdStr);
+			List<Publication> list = repository.findByUserId(userId);
+			return ApiResponse.success(list.stream()
+					.map(PublicationMapper::toResponseDTO)
+					.collect(Collectors.toList()));
+		} catch (Exception ex) {
+			return ApiResponse.fail("UserId inválido", 400);
+		}
 	}
 
 	public ApiResponse<PublicartionResponseDTO> getById(Long id) {

@@ -6,5 +6,6 @@ public enum Status {
     ADOPTADO,
     ACTIVO,
     INACTIVO,
-    ELIMINADO
+    ELIMINADO,
+    PAUSADO,
 }

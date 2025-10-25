@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.api.common.response.ApiResponse;
@@ -47,8 +48,24 @@ public class PublicationController {
 		return ResponseEntity.ok(service.create(resolvedUserId, dto));
 	}
 
+	// Obtener todas las publicaciones O solo las del usuario si se proporciona X-User-Id
 	@GetMapping
-	public ResponseEntity<ApiResponse<List<PublicartionResponseDTO>>> list() {
+	public ResponseEntity<ApiResponse<List<PublicartionResponseDTO>>> list(
+			@RequestHeader(value = "X-User-Id", required = false) String userId,
+			@RequestParam(value = "myPublications", required = false, defaultValue = "false") boolean myPublications) {
+		
+		// Si se solicita solo las publicaciones del usuario
+		if (myPublications && userId != null && !userId.isBlank()) {
+			return ResponseEntity.ok(service.listByUserId(userId));
+		}
+		
+		// Si se proporciona X-User-Id pero no se solicita explícitamente solo las del usuario
+		// Retornar solo las del usuario (por defecto en la sección "Mis Publicaciones")
+		if (userId != null && !userId.isBlank()) {
+			return ResponseEntity.ok(service.listByUserId(userId));
+		}
+		
+		// Si no hay userId, retornar todas (para vista pública de adopciones)
 		return ResponseEntity.ok(service.listAll());
 	}
 
