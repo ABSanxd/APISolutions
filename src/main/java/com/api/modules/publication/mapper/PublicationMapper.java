@@ -17,9 +17,11 @@ public class PublicationMapper {
         p.setDescription(dto.getDescription());
         p.setContact(dto.getContact());
         p.setUser(user);
-        if (dto.getSpecies() != null && dto.getSpecies().name().equals("OTRO")) {
-            p.setDescription((dto.getDescription() == null ? "" : dto.getDescription()) + "\nOTROS:" + dto.getOtros());
-        }
+        p.setDepartment(dto.getDepartment());
+        p.setProvince(dto.getProvince());
+        p.setDistrict(dto.getDistrict());
+        p.setShared(0);
+        p.setLikes(0);
         return p;
     }
 
@@ -38,8 +40,12 @@ public class PublicationMapper {
             p.setContact(dto.getContact());
         if (dto.getStatus() != null)
             p.setStatus(dto.getStatus());
-        if (dto.getOtros() != null && p.getSpecies() != null && p.getSpecies().name().equals("OTRO"))
-            p.setDescription((p.getDescription() == null ? "" : p.getDescription()) + "\nOTROS:" + dto.getOtros());
+        if (dto.getDepartment() != null)
+            p.setDepartment(dto.getDepartment());
+        if (dto.getProvince() != null)
+            p.setProvince(dto.getProvince());
+        if (dto.getDistrict() != null)
+            p.setDistrict(dto.getDistrict());
     }
 
     public static PublicartionResponseDTO toResponseDTO(Publication p) {
@@ -50,13 +56,17 @@ public class PublicationMapper {
         dto.setApproxAge(p.getApproxAge());
         dto.setPhoto(p.getPhoto());
         dto.setDescription(p.getDescription());
-    dto.setContact(p.getContact());
+        dto.setContact(p.getContact());
         dto.setStatus(p.getStatus());
         dto.setCreationDate(p.getCreationDate());
         dto.setUpdateDate(p.getUpdateDate());
         if (p.getUser() != null)
             dto.setUserId(p.getUser().getId());
+        dto.setDepartment(p.getDepartment());
+        dto.setProvince(p.getProvince());
+        dto.setDistrict(p.getDistrict());
+        dto.setShared(p.getShared());
+        dto.setLikes(p.getLikes());
         return dto;
     }
 }
-

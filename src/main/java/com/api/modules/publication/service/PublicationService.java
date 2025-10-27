@@ -26,16 +26,12 @@ public class PublicationService {
 	private final PublicationRepository repository;
 	private final UserRepository userRepository;
 
-	public ApiResponse<PublicartionResponseDTO> create(ControllerCreateDTO dto) {
-		return ApiResponse.fail("Use header X-User-Id para identificar al usuario", 400);
-	}
-
-	public ApiResponse<PublicartionResponseDTO> create(String userIdHeader, ControllerCreateDTO dto) {
+	public ApiResponse<PublicartionResponseDTO> create(String userIdStr, ControllerCreateDTO dto) {
 		UUID userUuid;
 		try {
-			userUuid = UUID.fromString(userIdHeader);
+			userUuid = UUID.fromString(userIdStr);
 		} catch (Exception ex) {
-			return ApiResponse.fail("X-User-Id inválido: debe ser UUID con formato estándar (36 caracteres)", 400);
+			return ApiResponse.fail("UserId inválido: debe ser UUID válido", 400);
 		}
 
 		Optional<User> ou = userRepository.findById(userUuid);
@@ -49,10 +45,11 @@ public class PublicationService {
 
 	public ApiResponse<List<PublicartionResponseDTO>> listAll() {
 		List<Publication> list = repository.findAll();
-		return ApiResponse.success(list.stream().map(PublicationMapper::toResponseDTO).collect(Collectors.toList()));
+		return ApiResponse.success(list.stream()
+				.map(PublicationMapper::toResponseDTO)
+				.collect(Collectors.toList()));
 	}
 
-	// Nuevo método para listar publicaciones por usuario
 	public ApiResponse<List<PublicartionResponseDTO>> listByUserId(String userIdStr) {
 		try {
 			UUID userId = UUID.fromString(userIdStr);
@@ -65,14 +62,14 @@ public class PublicationService {
 		}
 	}
 
-	public ApiResponse<PublicartionResponseDTO> getById(Long id) {
+	public ApiResponse<PublicartionResponseDTO> getById(UUID id) {
 		Optional<Publication> op = repository.findById(id);
 		if (op.isEmpty())
 			return ApiResponse.fail("Publicacion no encontrada", 404);
 		return ApiResponse.success(PublicationMapper.toResponseDTO(op.get()));
 	}
 
-	public ApiResponse<PublicartionResponseDTO> update(Long id, PublicationUpdateDTO dto) {
+	public ApiResponse<PublicartionResponseDTO> update(UUID id, PublicationUpdateDTO dto) {
 		Optional<Publication> op = repository.findById(id);
 		if (op.isEmpty())
 			return ApiResponse.fail("Publicacion no encontrada", 404);
@@ -84,7 +81,7 @@ public class PublicationService {
 		return ApiResponse.success(PublicationMapper.toResponseDTO(saved));
 	}
 
-	public ApiResponse<Object> delete(Long id) {
+	public ApiResponse<Object> delete(UUID id) {
 		Optional<Publication> op = repository.findById(id);
 		if (op.isEmpty())
 			return ApiResponse.fail("Publicacion no encontrada", 404);

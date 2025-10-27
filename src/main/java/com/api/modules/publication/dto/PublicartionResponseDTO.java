@@ -11,16 +11,20 @@ import lombok.Data;
 
 @Data
 public class PublicartionResponseDTO {
-	private Long id;
+	private UUID id;  // Cambió de Long a UUID
 	private String tempName;
 	private species species;
 	private String approxAge;
 	private String photo;
 	private String description;
-	private Map<String, Object> contact; // json object
+	private Map<String, Object> contact;
 	private Status status;
 	private LocalDate creationDate;
 	private LocalDate updateDate;
 	private UUID userId;
-	private String otros;
+	private String department;
+	private String province;
+	private String district;
+	private Integer shared;
+	private Integer likes;
 }

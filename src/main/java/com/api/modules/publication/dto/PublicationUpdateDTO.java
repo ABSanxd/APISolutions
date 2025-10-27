@@ -16,5 +16,7 @@ public class PublicationUpdateDTO {
 	private String description;
 	private Map<String, Object> contact;
 	private Status status;
-	private String otros;
+	private String department;
+	private String province;
+	private String district;
 }
