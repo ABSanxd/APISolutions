@@ -22,21 +22,16 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class PublicationService {
-    
 
 	private final PublicationRepository repository;
 	private final UserRepository userRepository;
 
-	public ApiResponse<PublicationResponseDTO> create(PublicationCreateDTO dto) {
-		return ApiResponse.fail("Use header X-User-Id para identificar al usuario", 400);
-	}
-
-	public ApiResponse<PublicationResponseDTO> create(String userIdHeader, PublicationCreateDTO dto) {
-		java.util.UUID userUuid;
+	public ApiResponse<PublicationResponseDTO> create(String userIdStr, PublicationCreateDTO dto) {
+		UUID userUuid;
 		try {
-			userUuid = java.util.UUID.fromString(userIdHeader);
+			userUuid = UUID.fromString(userIdStr);
 		} catch (Exception ex) {
-			return ApiResponse.fail("X-User-Id inválido: debe ser UUID con formato estándar (36 caracteres)", 400);
+			return ApiResponse.fail("UserId inválido: debe ser UUID válido", 400);
 		}
 
 		Optional<User> ou = userRepository.findById(userUuid);
@@ -50,7 +45,21 @@ public class PublicationService {
 
 	public ApiResponse<List<PublicationResponseDTO>> listAll() {
 		List<Publication> list = repository.findAll();
-		return ApiResponse.success(list.stream().map(PublicationMapper::toResponseDTO).collect(Collectors.toList()));
+		return ApiResponse.success(list.stream()
+				.map(PublicationMapper::toResponseDTO)
+				.collect(Collectors.toList()));
+	}
+
+	public ApiResponse<List<PublicationResponseDTO>> listByUserId(String userIdStr) {
+		try {
+			UUID userId = UUID.fromString(userIdStr);
+			List<Publication> list = repository.findByUserId(userId);
+			return ApiResponse.success(list.stream()
+					.map(PublicationMapper::toResponseDTO)
+					.collect(Collectors.toList()));
+		} catch (Exception ex) {
+			return ApiResponse.fail("UserId inválido", 400);
+		}
 	}
 
 	public ApiResponse<PublicationResponseDTO> getById(UUID id) {

@@ -34,6 +34,10 @@ public class Publication {
     @UuidGenerator
     private UUID id;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
     @Column(name = "temp_name", nullable = false)
     private String tempName;
 
@@ -44,13 +48,12 @@ public class Publication {
     @Column(name = "approx_age", nullable = false)
     private String approxAge;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String photo;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
 
-    // contact stored as JSON in Postgres (revisar lo de Yuli)
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb", nullable = false)
     private Map<String, Object> contact;
@@ -59,14 +62,24 @@ public class Publication {
     @Column(nullable = false)
     private Status status = Status.PENDIENTE;
 
-    @Column(name = "creation_date", nullable = false)
-    private LocalDate creationDate = LocalDate.now();
-
     @Column(name = "update_date")
     private LocalDate updateDate;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @Column(name = "creation_date", nullable = false)
+    private LocalDate creationDate = LocalDate.now();
 
+    @Column(nullable = false)
+    private String department;
+
+    @Column(nullable = false)
+    private String province;
+
+    @Column(nullable = false)
+    private String district;
+
+    @Column(nullable = false)
+    private Integer shared = 0;
+
+    @Column(nullable = false)
+    private Integer likes = 0;
 }

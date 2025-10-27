@@ -1,22 +1,20 @@
 package com.api.modules.publication.dto;
 
 import java.util.Map;
-import java.util.UUID;
 
-import com.api.common.enums.Species;
+import com.api.common.enums.species;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-public class PublicationCreateDTO {
-
-    @NotBlank
+public class ControllerCreateDTO {
+	@NotBlank
 	private String tempName;
 
 	@NotNull
-	private Species species;
+	private species species;
 
 	@NotBlank
 	private String approxAge;

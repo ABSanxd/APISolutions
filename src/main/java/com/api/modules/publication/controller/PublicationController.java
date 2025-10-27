@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,7 +12,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -24,31 +24,47 @@ import com.api.modules.publication.service.PublicationService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/publications")
+@RequiredArgsConstructor
 public class PublicationController {
+
 	private final PublicationService service;
 
 	@PostMapping
 	public ResponseEntity<ApiResponse<PublicationResponseDTO>> create(
-			@RequestHeader(value = "X-User-Id", required = false) String userId,
+			Authentication authentication,
 			@Validated @RequestBody PublicationCreateDTO dto) {
 
-		String resolvedUserId = userId;
-		if ((resolvedUserId == null || resolvedUserId.isBlank()) && dto.getUserId() != null) {
-			resolvedUserId = dto.getUserId().toString();
+		if (authentication == null || authentication.getName() == null) {
+			return ResponseEntity.status(401)
+					.body(ApiResponse.fail("Usuario no autenticado", 401));
 		}
 
-		if (resolvedUserId == null || resolvedUserId.isBlank()) {
-			return ResponseEntity.badRequest()
-					.body(com.api.common.response.ApiResponse.fail("Header X-User-Id obligatorio (o incluir userId en body)", 400));
-		}
+		// Obtener userId del token JWT
+		String userId = authentication.getName();
 
-		return ResponseEntity.ok(service.create(resolvedUserId, dto));
+		System.out.println("=== CREATE PUBLICATION ===");
+		System.out.println("userId del token: " + userId);
+		System.out.println("tempName: " + dto.getTempName());
+		System.out.println("species: " + dto.getSpecies());
+		System.out.println("photo length: " + (dto.getPhoto() != null ? dto.getPhoto().length() : 0));
+		System.out.println("========================");
+
+		return ResponseEntity.ok(service.create(userId, dto));
 	}
 
 	@GetMapping
-	public ResponseEntity<ApiResponse<List<PublicationResponseDTO>>> list() {
+	public ResponseEntity<ApiResponse<List<PublicationResponseDTO>>> list(
+			Authentication authentication) {
+
+		// Si hay autenticación, devolver solo las del usuario
+		if (authentication != null && authentication.getName() != null) {
+			String userId = authentication.getName();
+			System.out.println("GET /publications - userId: " + userId);
+			return ResponseEntity.ok(service.listByUserId(userId));
+		}
+
+		// Si no hay autenticación, devolver todas (para vista pública)
 		return ResponseEntity.ok(service.listAll());
 	}
 
@@ -58,7 +74,8 @@ public class PublicationController {
 	}
 
 	@PutMapping("/{id}")
-	public ResponseEntity<ApiResponse<PublicationResponseDTO>> update(@PathVariable UUID id,
+	public ResponseEntity<ApiResponse<PublicationResponseDTO>> update(
+			@PathVariable UUID id,
 			@RequestBody PublicationUpdateDTO dto) {
 		return ResponseEntity.ok(service.update(id, dto));
 	}
