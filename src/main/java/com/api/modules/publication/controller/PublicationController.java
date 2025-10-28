@@ -16,12 +16,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.api.common.response.ApiResponse;
+import com.api.modules.publication.dto.PublicationCreateDTO;
+import com.api.modules.publication.dto.PublicationResponseDTO;
+import com.api.modules.publication.dto.PublicationUpdateDTO;
 import com.api.modules.publication.service.PublicationService;
 import com.api.modules.user.model.User;
 
-import lombok.RequiredArgsConstructor; 
-
-
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/publications")
@@ -33,8 +34,7 @@ public class PublicationController {
 	@PostMapping
 	public ResponseEntity<ApiResponse<PublicationResponseDTO>> create(
 			Authentication authentication,
-			@Validated @RequestBody PublicationCreateDTO dto) 
-			{
+			@Validated @RequestBody PublicationCreateDTO dto) {
 
 		// Validar que la autenticación y el principal existan
 		if (authentication == null || authentication.getPrincipal() == null) {
