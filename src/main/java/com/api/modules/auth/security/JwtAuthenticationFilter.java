@@ -1,6 +1,7 @@
 package com.api.modules.auth.security;
 
 import java.io.IOException;
+import java.util.UUID;
 
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -28,24 +29,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(
-        @NonNull HttpServletRequest request,
-        @NonNull HttpServletResponse response,
-        @NonNull FilterChain filterChain
-    ) 
-    
-    throws ServletException, IOException {
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response,
+            @NonNull FilterChain filterChain)
+
+            throws ServletException, IOException {
         try {
             String token = getJwtFromRequest(request);
 
             if (StringUtils.hasText(token) && jwtUtils.validateToken(token)) {
-                String email = jwtUtils.getEmailFromToken(token);
-
-                User user = userRepository.findByEmail(email).orElse(null);
+                String userId = jwtUtils.getUserIdFromToken(token);
+                User user = userRepository.findById(UUID.fromString(userId)).orElse(null);
 
                 if (user != null) {
                     UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                            user, null, null
-                    );
+                            user, null, null);
                     auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                     SecurityContextHolder.getContext().setAuthentication(auth);
