@@ -6,5 +6,4 @@ public enum Species {
     AVE,
     CONEJO,
     OTRO
-    
 }
