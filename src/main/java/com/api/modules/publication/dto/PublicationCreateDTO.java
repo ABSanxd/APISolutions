@@ -1,8 +1,6 @@
 package com.api.modules.publication.dto;
 
 import java.util.Map;
-import java.util.UUID;
-
 import com.api.common.enums.Species;
 
 import jakarta.validation.constraints.NotBlank;
