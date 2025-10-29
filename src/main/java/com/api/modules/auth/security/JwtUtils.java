@@ -49,10 +49,10 @@ public class JwtUtils {
         return getClaims(token).getSubject();
     }
 
-    // Obtener email
-    public String getEmailFromToken(String token) {
-        return getClaims(token).get("email", String.class);
-    }
+    // // Obtener email
+    // public String getEmailFromToken(String token) {
+    //     return getClaims(token).get("email", String.class);
+    // }
 
     // Validar token
     public boolean validateToken(String token) {
