@@ -1,6 +1,7 @@
 package com.api.common.enums;
 
-public enum Species {
+// Se agregaran mas de ser necesarios
+public enum species {
     PERRO,
     GATO,
     AVE,
