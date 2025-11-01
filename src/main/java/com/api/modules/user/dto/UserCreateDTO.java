@@ -6,6 +6,7 @@ import jakarta.persistence.Column;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
@@ -17,6 +18,10 @@ public class UserCreateDTO {
 
     @NotBlank(message = "El email es obligatorio")
     @Email(message = "El formato del correo no es válido.")
+    @Pattern(
+        regexp = "^[A-Za-z0-9+_.-]+@gmail\\.com$", 
+        message = "Solo se permiten correos de Gmail (usuario@gmail.com)"
+    )
     @Column(unique = true)
     private String email;
 

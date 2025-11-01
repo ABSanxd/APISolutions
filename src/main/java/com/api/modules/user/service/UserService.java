@@ -43,7 +43,7 @@ public class UserService {
     // Crear un nuevo usuario (mas adelante cifrado de contraseña)
     public UserResponseDTO createUser(UserCreateDTO dto) {
         if (userRepository.existsByEmail(dto.getEmail())) {
-            throw new DataIntegrityViolationException("El correo electrónico ya está registrado.");
+            throw new DataIntegrityViolationException("No se pudo completar el registro. Verifica tus datos");
         }
         validarEdadMinima(dto.getBirthDate());
 
