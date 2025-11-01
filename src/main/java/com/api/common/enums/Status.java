@@ -7,5 +7,7 @@ public enum Status {
     ACTIVO, //ads
     INACTIVO, //ads
     ELIMINADO,
-    EXPIRADO //ads
+    EXPIRADO, //ads
+    PAUSADO
+    
 }
