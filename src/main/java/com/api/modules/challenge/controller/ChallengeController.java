@@ -1,13 +1,17 @@
 package com.api.modules.challenge.controller;
 
 import com.api.common.response.ApiResponse;
+import com.api.modules.challenge.dto.ChallengeCreateDTO;
 import com.api.modules.challenge.dto.ChallengeDTO;
 import com.api.modules.challenge.service.ChallengeService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import com.api.common.enums.Category;
 import com.api.common.enums.Frequency;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -21,6 +25,19 @@ import java.util.UUID;
 @RequestMapping("/api/v1/challenges")
 public class ChallengeController {
 private final ChallengeService challengeService;
+
+
+// Metodo Agregado: POST /api/v1/challenges
+    @PostMapping
+    public ResponseEntity<ApiResponse<ChallengeDTO>> createChallenge(
+        @Valid @RequestBody ChallengeCreateDTO challengeDto) {
+        
+        ChallengeDTO createdChallenge = challengeService.createChallenge(challengeDto);
+        
+        return ResponseEntity
+            .status(HttpStatus.CREATED) // Código HTTP 201
+            .body(ApiResponse.success(createdChallenge, "Reto creado exitosamente."));
+    }
     
     // gET /api/v1/challenges
     // Obtiene una lista de retos, con filtrado opcional por categoría y frecuencia.
@@ -53,4 +70,6 @@ private final ChallengeService challengeService;
         return ResponseEntity
                 .ok(ApiResponse.success(null, "Reto completado, XP y progreso de logros actualizado."));
     }
+
+    
 }
