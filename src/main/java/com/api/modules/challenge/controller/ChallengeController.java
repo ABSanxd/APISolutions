@@ -80,12 +80,13 @@ public class ChallengeController {
         return ResponseEntity.ok(ApiResponse.success(updatedChallenge, "Reto actualizado correctamente."));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> deleteChallenge(@PathVariable UUID id) {
-        challengeService.deleteChallenge(id);
+    @PutMapping("/{id}/inactivate")
+    public ResponseEntity<ApiResponse<ChallengeDTO>> inactivateChallenge(@PathVariable UUID id) {
+
+        ChallengeDTO inactiveChallenge = challengeService.inactivateChallenge(id);
+
         return ResponseEntity
-                .status(HttpStatus.NO_CONTENT) // Código HTTP 204
-                .body(ApiResponse.success(null, "Reto eliminado correctamente."));
+                .ok(ApiResponse.success(inactiveChallenge, "Reto inactivado correctamente."));
     }
 
 }

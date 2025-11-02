@@ -2,6 +2,7 @@ package com.api.modules.challenge.service;
 
 import com.api.common.enums.Category;
 import com.api.common.enums.Frequency;
+import com.api.common.enums.Status;
 import com.api.common.exception.ResourceNotFoundException;
 import com.api.modules.challenge.dto.ChallengeCreateDTO;
 import com.api.modules.challenge.dto.ChallengeDTO;
@@ -79,13 +80,18 @@ public class ChallengeService {
     }
 
     @Transactional 
-    public void deleteChallenge(UUID id) {
+    public ChallengeDTO inactivateChallenge(UUID id) {
  
-        if (!challengeRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Challenge not found with id: " + id);
-        }
+        Challenge existingChallenge = challengeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Challenge not found with id: " + id));
 
-        challengeRepository.deleteById(id);
+        existingChallenge.setStatus(Status.INACTIVO);
+
+
+        existingChallenge.setStatus(Status.ELIMINADO);
+
+        Challenge inactiveChallenge = challengeRepository.save(existingChallenge);
+        return challengeMapper.toDTO(inactiveChallenge);
     }
 
     // método de consulta (GET /api/v1/challenges)
