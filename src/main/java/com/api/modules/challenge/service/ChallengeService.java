@@ -88,7 +88,6 @@ public class ChallengeService {
         existingChallenge.setStatus(Status.INACTIVO);
 
 
-        existingChallenge.setStatus(Status.ELIMINADO);
 
         Challenge inactiveChallenge = challengeRepository.save(existingChallenge);
         return challengeMapper.toDTO(inactiveChallenge);
