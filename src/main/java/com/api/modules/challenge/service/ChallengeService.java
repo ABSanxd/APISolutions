@@ -32,18 +32,16 @@ public class ChallengeService {
     private final ChallengeRequirementsRepository requirementsRepository;
     private final ChallengeMapper challengeMapper;
 
-    
     public ChallengeDTO createChallenge(ChallengeCreateDTO dto) {
-    
-        //Mapear el DTO a la entidad
-    Challenge challengeToSave = challengeMapper.toEntity(dto);
-    
-    
-    //Guardar en la base de datos (ChallengeRepository heredado de JpaRepository)
-    Challenge savedChallenge = challengeRepository.save(challengeToSave);
-    
-    //Devolver la respuesta mapeada (reutilizando ChallengeResponseDTO)
-    return challengeMapper.toDTO(savedChallenge);
+
+        // Mapear el DTO a la entidad
+        Challenge challengeToSave = challengeMapper.toEntity(dto);
+
+        // Guardar en la base de datos (ChallengeRepository heredado de JpaRepository)
+        Challenge savedChallenge = challengeRepository.save(challengeToSave);
+
+        // Devolver la respuesta mapeada (reutilizando ChallengeResponseDTO)
+        return challengeMapper.toDTO(savedChallenge);
     }
 
     public ChallengeDTO getChallengeById(UUID id) {
@@ -52,7 +50,6 @@ public class ChallengeService {
 
         return challengeMapper.toDTO(challenge);
     }
-
 
     // método de consulta (GET /api/v1/challenges)
     public List<ChallengeDTO> findAllChallenges(Category category, Frequency frequency) {
@@ -123,7 +120,5 @@ public class ChallengeService {
                     }
                 });
     }
-    
-    
 
 }

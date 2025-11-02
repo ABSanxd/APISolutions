@@ -1,14 +1,19 @@
 package com.api.modules.challenge.model;
+
 import jakarta.persistence.*;
 import com.api.common.enums.Category;
 import com.api.common.enums.Frequency;
+import com.api.common.enums.Status;
+
 import lombok.Data;
-import com.api.modules.petchallenge.models.PetChallenge;
-import com.api.modules.challengerequirements.model.ChallengeRequirements;
-import java.time.LocalDate;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
-import java.util.List;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.UuidGenerator;
+
 
 @Data
 @Entity
@@ -16,40 +21,40 @@ import java.util.List;
 
 public class Challenge {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id", nullable = false)
+    @GeneratedValue
+    @UuidGenerator
     private UUID id;
 
-    @Column(name = "name", nullable = false, length = 255)
+    @Column(nullable = false)
     private String name;
 
-    @Column(name = "description", nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "frequency", nullable = false, length = 50)
+    @Column(nullable = false)
     private Frequency frequency;
 
-    @Column(name= "points", nullable = false)
+    @Column(nullable = false)
     private Integer points;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "category", nullable = false, length = 100)
+    @Column(nullable = false)
     private Category category;
 
-    @Column(name = "image", columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     private String image;
 
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Status status = Status.ACTIVO;
 
-    @Column(name = "updated_at", nullable = true)
-    private LocalDate updatedAt;
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
-    @OneToMany(mappedBy = "challenge", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<PetChallenge> petChallenges;
+    @UpdateTimestamp
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "challenge", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ChallengeRequirements> requirements;
-    
 }
