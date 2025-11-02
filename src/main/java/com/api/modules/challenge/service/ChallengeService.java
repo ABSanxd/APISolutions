@@ -5,6 +5,7 @@ import com.api.common.enums.Frequency;
 import com.api.common.exception.ResourceNotFoundException;
 import com.api.modules.challenge.dto.ChallengeCreateDTO;
 import com.api.modules.challenge.dto.ChallengeDTO;
+import com.api.modules.challenge.dto.ChallengeUpdateDTO;
 import com.api.modules.challenge.mapper.ChallengeMapper;
 import com.api.modules.challenge.model.Challenge;
 import com.api.modules.challenge.repository.ChallengeRepository;
@@ -49,6 +50,42 @@ public class ChallengeService {
                 .orElseThrow(() -> new ResourceNotFoundException("Challenge not found with id: " + id));
 
         return challengeMapper.toDTO(challenge);
+    }
+
+
+    public ChallengeDTO updateChallenge(UUID id, ChallengeUpdateDTO dto) {
+
+        Challenge existingChallenge = challengeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Challenge not found with id: " + id));
+
+        if (dto.getName() != null)
+            existingChallenge.setName(dto.getName());
+        if (dto.getDescription() != null)
+            existingChallenge.setDescription(dto.getDescription());
+        if (dto.getFrequency() != null)
+            existingChallenge.setFrequency(dto.getFrequency());
+        if (dto.getPoints() != null)
+            existingChallenge.setPoints(dto.getPoints());
+        if (dto.getCategory() != null)
+            existingChallenge.setCategory(dto.getCategory());
+        if (dto.getImage() != null)
+            existingChallenge.setImage(dto.getImage());
+
+        // @UpdateTimestamp o manualmente.
+
+        // Guardar y devolver
+        Challenge updatedChallenge = challengeRepository.save(existingChallenge);
+        return challengeMapper.toDTO(updatedChallenge);
+    }
+
+    @Transactional 
+    public void deleteChallenge(UUID id) {
+ 
+        if (!challengeRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Challenge not found with id: " + id);
+        }
+
+        challengeRepository.deleteById(id);
     }
 
     // método de consulta (GET /api/v1/challenges)
