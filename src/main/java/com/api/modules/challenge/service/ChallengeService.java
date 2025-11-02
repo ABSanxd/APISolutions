@@ -5,7 +5,6 @@ import com.api.common.enums.Frequency;
 import com.api.common.exception.ResourceNotFoundException;
 import com.api.modules.challenge.dto.ChallengeCreateDTO;
 import com.api.modules.challenge.dto.ChallengeDTO;
-import com.api.modules.challenge.dto.ChallengeUpdateDTO;
 import com.api.modules.challenge.mapper.ChallengeMapper;
 import com.api.modules.challenge.model.Challenge;
 import com.api.modules.challenge.repository.ChallengeRepository;
@@ -33,18 +32,16 @@ public class ChallengeService {
     private final ChallengeRequirementsRepository requirementsRepository;
     private final ChallengeMapper challengeMapper;
 
-    
     public ChallengeDTO createChallenge(ChallengeCreateDTO dto) {
-    
-        //Mapear el DTO a la entidad
-    Challenge challengeToSave = challengeMapper.toEntity(dto);
-    
-    
-    //Guardar en la base de datos (ChallengeRepository heredado de JpaRepository)
-    Challenge savedChallenge = challengeRepository.save(challengeToSave);
-    
-    //Devolver la respuesta mapeada (reutilizando ChallengeDTO)
-    return challengeMapper.toDTO(savedChallenge);
+
+        // Mapear el DTO a la entidad
+        Challenge challengeToSave = challengeMapper.toEntity(dto);
+
+        // Guardar en la base de datos (ChallengeRepository heredado de JpaRepository)
+        Challenge savedChallenge = challengeRepository.save(challengeToSave);
+
+        // Devolver la respuesta mapeada (reutilizando ChallengeResponseDTO)
+        return challengeMapper.toDTO(savedChallenge);
     }
 
     public ChallengeDTO getChallengeById(UUID id) {
@@ -53,7 +50,6 @@ public class ChallengeService {
 
         return challengeMapper.toDTO(challenge);
     }
-
 
     // método de consulta (GET /api/v1/challenges)
     public List<ChallengeDTO> findAllChallenges(Category category, Frequency frequency) {
@@ -124,38 +120,5 @@ public class ChallengeService {
                     }
                 });
     }
-
-
-    // ChallengeService.java (Adición)
-
-public ChallengeDTO updateChallenge(UUID id, ChallengeUpdateDTO dto) {
-    //Validar existencia
-    Challenge existingChallenge = challengeRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Challenge not found with id: " + id));
-
-    // Mapear y aplicar cambios (Lógica simple)
-    if (dto.getName() != null) existingChallenge.setName(dto.getName());
-    if (dto.getDescription() != null) existingChallenge.setDescription(dto.getDescription());
-    if (dto.getFrequency() != null) existingChallenge.setFrequency(dto.getFrequency());
-    if (dto.getPoints() != null) existingChallenge.setPoints(dto.getPoints());
-    if (dto.getCategory() != null) existingChallenge.setCategory(dto.getCategory());
-    if (dto.getImage() != null) existingChallenge.setImage(dto.getImage());
-    
-    //Guardar y devolver
-    Challenge updatedChallenge = challengeRepository.save(existingChallenge);
-    return challengeMapper.toDTO(updatedChallenge);
-}
-
-// ChallengeService.java (Adición)
-
-@Transactional
-public void deleteChallenge(UUID id) {
-    if (!challengeRepository.existsById(id)) {
-        throw new ResourceNotFoundException("Challenge not found with id: " + id);
-    }
-    challengeRepository.deleteById(id);
-}
-    
-    
 
 }

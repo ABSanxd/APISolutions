@@ -1,11 +1,4 @@
-package com.api.modules.challenge.model;
-
-import jakarta.persistence.*;
-import com.api.common.enums.Category;
-import com.api.common.enums.Frequency;
-import com.api.common.enums.Status;
-
-import lombok.Data;
+package com.api.modules.achievement.model;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -14,12 +7,24 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.UuidGenerator;
 
+import com.api.common.enums.AchievementType;
+import com.api.common.enums.Status;
 
-@Data
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.Data;
+
 @Entity
-@Table(name = "challenge")
+@Data
+@Table(name = "achievement")
 
-public class Challenge {
+public class Achievement {
+
     @Id
     @GeneratedValue
     @UuidGenerator
@@ -28,22 +33,17 @@ public class Challenge {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Frequency frequency;
-
-    @Column(nullable = false)
-    private Integer points;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Category category;
-
     @Column(columnDefinition = "TEXT")
-    private String image;
+    private String phrase; // Frase motivacional opcional
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AchievementType achievementType;
+
+    private Integer points;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -56,5 +56,4 @@ public class Challenge {
     @UpdateTimestamp
     @Column(nullable = false)
     private LocalDateTime updatedAt;
-
 }
