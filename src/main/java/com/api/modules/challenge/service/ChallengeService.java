@@ -3,6 +3,7 @@ package com.api.modules.challenge.service;
 import com.api.common.enums.Category;
 import com.api.common.enums.Frequency;
 import com.api.common.exception.ResourceNotFoundException;
+import com.api.modules.challenge.dto.ChallengeCreateDTO;
 import com.api.modules.challenge.dto.ChallengeDTO;
 import com.api.modules.challenge.mapper.ChallengeMapper;
 import com.api.modules.challenge.model.Challenge;
@@ -20,8 +21,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-
-
 //este service contiene la logica central de gamificacion (reto completado, actualizacion de XP, verificacion de logros, etc)
 @Service
 @RequiredArgsConstructor
@@ -34,18 +33,31 @@ public class ChallengeService {
     private final ChallengeMapper challengeMapper;
 
     
+    public ChallengeDTO createChallenge(ChallengeCreateDTO dto) {
+    
+        //Mapear el DTO a la entidad
+    Challenge challengeToSave = challengeMapper.toEntity(dto);
+    
+    
+    //Guardar en la base de datos (ChallengeRepository heredado de JpaRepository)
+    Challenge savedChallenge = challengeRepository.save(challengeToSave);
+    
+    //Devolver la respuesta mapeada (reutilizando ChallengeResponseDTO)
+    return challengeMapper.toDTO(savedChallenge);
+    }
 
     public ChallengeDTO getChallengeById(UUID id) {
-    Challenge challenge = challengeRepository.findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("Challenge not found with id: " + id));
-    
-    return challengeMapper.toDTO(challenge);
-}
+        Challenge challenge = challengeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Challenge not found with id: " + id));
+
+        return challengeMapper.toDTO(challenge);
+    }
+
 
     // método de consulta (GET /api/v1/challenges)
     public List<ChallengeDTO> findAllChallenges(Category category, Frequency frequency) {
-        List<Challenge> challenges; 
-        if(category != null && frequency != null) {
+        List<Challenge> challenges;
+        if (category != null && frequency != null) {
             challenges = challengeRepository.findByCategoryAndFrequency(category, frequency);
         } else if (category != null) {
             challenges = challengeRepository.findByCategory(category);
@@ -55,12 +67,11 @@ public class ChallengeService {
             challenges = challengeRepository.findAll();
         }
         return challenges.stream().map(challengeMapper::toDTO).collect(Collectors.toList());
-        
+
     }
 
-    
-    //logica para marcar reto como completado, actualizar xp y verificar logros
-    //endpoint: POST /api/v1/challenges/pets/{petId}/complete/{challengeId}
+    // logica para marcar reto como completado, actualizar xp y verificar logros
+    // endpoint: POST /api/v1/challenges/pets/{petId}/complete/{challengeId}
     @Transactional
     public void completeChallenge(UUID petId, UUID challengeId) {
         Pet pet = petRepository.findById(petId)
@@ -68,58 +79,51 @@ public class ChallengeService {
 
         Challenge challenge = challengeRepository.findById(challengeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Challenge not found with id: " + challengeId));
-                //si no encuentra la mascota o el reto, lanza excepcion
-    
-                
+        // si no encuentra la mascota o el reto, lanza excepcion
 
-        //registrar avance
+        // registrar avance
         PetChallenge petChallenge = new PetChallenge();
         petChallenge.setPet(pet);
         petChallenge.setChallenge(challenge);
         petChallengeRepository.save(petChallenge);
 
-        //actualizar puntos/xp 
+        // actualizar puntos/xp
         pet.setPetXp(pet.getPetXp() + challenge.getPoints());
         petRepository.save(pet);
 
-
-        //Verificar logros despues de la actualizacion
+        // Verificar logros despues de la actualizacion
         checkAndAwardAchievements(petId, challengeId);
     }
 
     private void checkAndAwardAchievements(UUID petId, UUID completedChallengeId) {
-        
+
         // Obtener todos los requisitos que usan este reto.
         List<ChallengeRequirements> requirements = requirementsRepository.findByChallengeId(completedChallengeId);
 
-        //Agrupar por el ID de Logro al que pertenecen.
+        // Agrupar por el ID de Logro al que pertenecen.
         requirements.stream()
-            .collect(Collectors.groupingBy(ChallengeRequirements::getAchievementId))
-            .forEach((achievementId, requirementList) -> {
-                
-                // Para este Logro "achievementId", verifica si todos sus requisitos se cumplen.
-                boolean isAchievementComplete = requirementList.stream().allMatch(req -> {
-                    
-                    // Contar cuántas veces la mascota ha completado el reto requerido.
-                    long count = petChallengeRepository.countByPetIdAndChallengeId(
-                            petId, req.getChallenge().getId()); //método countByPetIdAndChallengeId
+                .collect(Collectors.groupingBy(ChallengeRequirements::getAchievementId))
+                .forEach((achievementId, requirementList) -> {
 
-                    // Compara si el conteo actual >= repeticiones requeridas.
-                    return count >= req.getRepetitions();
+                    // Para este Logro "achievementId", verifica si todos sus requisitos se cumplen.
+                    boolean isAchievementComplete = requirementList.stream().allMatch(req -> {
+
+                        // Contar cuántas veces la mascota ha completado el reto requerido.
+                        long count = petChallengeRepository.countByPetIdAndChallengeId(
+                                petId, req.getChallenge().getId()); // método countByPetIdAndChallengeId
+
+                        // Compara si el conteo actual >= repeticiones requeridas.
+                        return count >= req.getRepetitions();
+                    });
+
+                    if (isAchievementComplete) {
+                        // Lógica para otorgar el logro a la mascota.
+                        System.out.println(
+                                "LOGRO DESBLOQUEADO (ID temporal): " + achievementId + " para la mascota: " + petId);
+                    }
                 });
-
-                if (isAchievementComplete) {
-                    // Lógica para otorgar el logro a la mascota.
-                    System.out.println("LOGRO DESBLOQUEADO (ID temporal): " + achievementId + " para la mascota: " + petId);
-                }
-            });
     }
-
-
     
-
-
-
-
+    
 
 }
