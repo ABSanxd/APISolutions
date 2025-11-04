@@ -1,5 +1,6 @@
 package com.api.modules.auth.controller;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -10,6 +11,9 @@ import com.api.common.response.ApiResponse;
 import com.api.modules.auth.dto.LoginRequestDTO;
 import com.api.modules.auth.dto.LoginResponseDTO;
 import com.api.modules.auth.service.AuthService;
+import com.api.modules.user.dto.UserCreateDTO;
+import com.api.modules.user.dto.UserResponseDTO;
+import com.api.modules.user.service.UserService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,10 +24,19 @@ import lombok.RequiredArgsConstructor;
 public class AuthController {
 
     private final AuthService authService;
+    private final UserService userService;
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginResponseDTO>> login(@Valid @RequestBody LoginRequestDTO request) {
         LoginResponseDTO response = authService.login(request);
         return ResponseEntity.ok(ApiResponse.success(response, "Login exitoso"));
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<ApiResponse<UserResponseDTO>> registerUser(@Valid @RequestBody UserCreateDTO userDto) {
+        UserResponseDTO createdUser = userService.createUser(userDto);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.success(createdUser, "Usuario registrado exitosamente"));
     }
 }
