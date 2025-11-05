@@ -2,12 +2,14 @@ package com.api.modules.user.model;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import org.hibernate.annotations.UuidGenerator;
 
 import com.api.common.enums.Status;
 import com.api.common.enums.UserLevel;
+import com.api.modules.pet.model.Pet;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -15,8 +17,10 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Data;
+import lombok.ToString;
 
 @Data // Parte de la Data
 @Entity // Es una entidad
@@ -66,4 +70,8 @@ public class User {
     private LocalDateTime createdAt = LocalDateTime.now();
 
     private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "user")
+    @ToString.Exclude 
+    private List<Pet> pets;
 }
