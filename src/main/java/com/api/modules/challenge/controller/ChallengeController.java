@@ -89,4 +89,10 @@ public class ChallengeController {
                 .ok(ApiResponse.success(inactiveChallenge, "Reto inactivado correctamente."));
     }
 
+    @PutMapping("/{id}/activate")
+    public ResponseEntity<ApiResponse<ChallengeResponseDTO>> activateChallenge(@PathVariable UUID id) {
+        ChallengeResponseDTO activated = challengeService.activateChallenge(id);
+        return ResponseEntity.ok(ApiResponse.success(activated, "Reto activado correctamente."));
+    }
+
 }
