@@ -64,7 +64,7 @@ public class ChallengeService {
         return challengeMapper.toResponseDTO(updatedChallenge);
     }
 
-    @Transactional
+    
     public ChallengeResponseDTO Deletechallenge(UUID id) {
 
         Challenge existingChallenge = challengeRepository.findById(id)
