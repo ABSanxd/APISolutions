@@ -19,5 +19,9 @@ public interface ChallengeRepository extends JpaRepository<Challenge, UUID> {
     List<Challenge> findByCategoryAndFrequency(Category category, Frequency frequency);    
 
     List<Challenge> findByStatus(Status status);
+
+    boolean existsByName(String name);
+
+    
 }
 

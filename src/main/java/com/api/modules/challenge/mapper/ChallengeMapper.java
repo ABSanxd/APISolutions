@@ -46,6 +46,8 @@ public class ChallengeMapper {
         return entity;
     }
 
+    
+
     public static void updateEntity(Challenge challenge, ChallengeUpdateDTO dto) {
         if (dto.getName() != null) {
             challenge.setName(dto.getName());
