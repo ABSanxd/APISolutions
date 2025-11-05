@@ -7,7 +7,7 @@ import com.api.modules.challenge.dto.ChallengeUpdateDTO;
 
 @Component
 public class ChallengeMapper {
-    public ChallengeResponseDTO toDTO(Challenge entity){
+    public ChallengeResponseDTO toResponseDTO(Challenge entity){
         if(entity == null){
             return null;
         }
@@ -20,10 +20,7 @@ public class ChallengeMapper {
         dto.setPoints(entity.getPoints());
         dto.setCategory(entity.getCategory());
         dto.setImage(entity.getImage());
-                if (entity.getStatus() != null) {
-            dto.setStatus(entity.getStatus().toString()); // Convert enum to string
-        }
-        
+        dto.setStatus(entity.getStatus());
         dto.setCreatedAt(entity.getCreatedAt());
         dto.setUpdatedAt(entity.getUpdatedAt());
         

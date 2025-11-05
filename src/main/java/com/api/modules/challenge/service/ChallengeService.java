@@ -43,14 +43,14 @@ public class ChallengeService {
         Challenge savedChallenge = challengeRepository.save(challengeToSave);
 
         // Devolver la respuesta mapeada (reutilizando ChallengeResponseDTO)
-        return challengeMapper.toDTO(savedChallenge);
+        return challengeMapper.toResponseDTO(savedChallenge);
     }
 
     public ChallengeResponseDTO getChallengeById(UUID id) {
         Challenge challenge = challengeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Challenge not found with id: " + id));
 
-        return challengeMapper.toDTO(challenge);
+        return challengeMapper.toResponseDTO(challenge);
     }
 
 
@@ -76,7 +76,7 @@ public class ChallengeService {
 
         // Guardar y devolver
         Challenge updatedChallenge = challengeRepository.save(existingChallenge);
-        return challengeMapper.toDTO(updatedChallenge);
+        return challengeMapper.toResponseDTO(updatedChallenge);
     }
 
     @Transactional 
@@ -90,7 +90,7 @@ public class ChallengeService {
 
 
         Challenge inactiveChallenge = challengeRepository.save(existingChallenge);
-        return challengeMapper.toDTO(inactiveChallenge);
+        return challengeMapper.toResponseDTO(inactiveChallenge);
     }
 
     // método de consulta (GET /api/v1/challenges)
@@ -105,7 +105,7 @@ public class ChallengeService {
         } else {
             challenges = challengeRepository.findAll();
         }
-        return challenges.stream().map(challengeMapper::toDTO).collect(Collectors.toList());
+        return challenges.stream().map(challengeMapper::toResponseDTO).collect(Collectors.toList());
 
     }
 
