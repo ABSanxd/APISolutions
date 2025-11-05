@@ -64,7 +64,6 @@ public class ChallengeService {
         return challengeMapper.toResponseDTO(updatedChallenge);
     }
 
-    
     public ChallengeResponseDTO deletechallenge(UUID id) {
 
         Challenge existingChallenge = challengeRepository.findById(id)
@@ -76,15 +75,26 @@ public class ChallengeService {
         return challengeMapper.toResponseDTO(inactiveChallenge);
     }
 
-    
+    public ChallengeResponseDTO activateChallenge(UUID id) {
+        Challenge existingChallenge = challengeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Reto no encontrado con ID: " + id));
+
+        if (existingChallenge.getStatus() == Status.ACTIVO) {
+            throw new IllegalStateException("El reto ya está activo.");
+        }
+
+        existingChallenge.setStatus(Status.ACTIVO);
+        Challenge activated = challengeRepository.save(existingChallenge);
+
+        return challengeMapper.toResponseDTO(activated);
+    }  
+
+    // método de consulta (GET /api/v1/challenges)
     public List<ChallengeResponseDTO> findAllChallenges(Category category, Frequency frequency) {
         List<Challenge> challenges;
-        //filtrar por categoria y frecuencia
         if (category != null && frequency != null) {
             challenges = challengeRepository.findByCategoryAndFrequency(category, frequency);
-        }
-        //solo cateogria 
-        else if (category != null) {
+        } else if (category != null) {
             challenges = challengeRepository.findByCategory(category);
         } else if (frequency != null) {
             challenges = challengeRepository.findByFrequency(frequency);
