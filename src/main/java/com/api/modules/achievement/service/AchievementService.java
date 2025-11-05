@@ -104,7 +104,7 @@ public class AchievementService {
         achievementRepository.save(achievement);
     }
 
-    //Activar logro
+    // Activar logro
     public void activateAchievement(UUID id) {
         Achievement achievement = achievementRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Logro no encontrado para activar"));
@@ -112,5 +112,41 @@ public class AchievementService {
         achievement.setStatus(Status.ACTIVO);
         achievementRepository.save(achievement);
     }
+
+    // --------------------------------
+    /*
+     * private void checkAndAwardAchievements(UUID petId, UUID completedChallengeId)
+     * {
+     * 
+     * // Obtener todos los requisitos que usan este reto.
+     * List<ChallengeRequirements> requirements =
+     * requirementsRepository.findByChallengeId(completedChallengeId);
+     * 
+     * // Agrupar por el ID de Logro al que pertenecen.
+     * requirements.stream()
+     * .collect(Collectors.groupingBy(ChallengeRequirements::getAchievementId))
+     * .forEach((achievementId, requirementList) -> {
+     * 
+     * // Para este Logro "achievementId", verifica si todos sus requisitos se
+     * cumplen.
+     * boolean isAchievementComplete = requirementList.stream().allMatch(req -> {
+     * 
+     * // Contar cuántas veces la mascota ha completado el reto requerido.
+     * long count = petChallengeRepository.countByPetIdAndChallengeId(
+     * petId, req.getChallenge().getId()); // método countByPetIdAndChallengeId
+     * 
+     * // Compara si el conteo actual >= repeticiones requeridas.
+     * return count >= req.getRepetitions();
+     * });
+     * 
+     * if (isAchievementComplete) {
+     * // Lógica para otorgar el logro a la mascota.
+     * System.out.println(
+     * "LOGRO DESBLOQUEADO (ID temporal): " + achievementId + " para la mascota: " +
+     * petId);
+     * }
+     * });
+     * }
+     */
 
 }

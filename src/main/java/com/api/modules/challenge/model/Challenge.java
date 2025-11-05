@@ -57,4 +57,6 @@ public class Challenge {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
+
+
 }

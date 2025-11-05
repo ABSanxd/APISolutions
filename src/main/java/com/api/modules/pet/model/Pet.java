@@ -67,4 +67,5 @@ public class Pet {
 
     @Column(name = "updated_in")
     private LocalDateTime updatedIn;
+
 }
