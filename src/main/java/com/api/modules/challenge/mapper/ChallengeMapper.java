@@ -1,4 +1,7 @@
 package com.api.modules.challenge.mapper;
+
+import java.time.LocalDateTime;
+
 import org.springframework.stereotype.Component;
 import com.api.modules.challenge.model.Challenge;
 import com.api.modules.challenge.dto.ChallengeCreateDTO;
@@ -7,8 +10,8 @@ import com.api.modules.challenge.dto.ChallengeUpdateDTO;
 
 @Component
 public class ChallengeMapper {
-    public ChallengeResponseDTO toResponseDTO(Challenge entity){
-        if(entity == null){
+    public ChallengeResponseDTO toResponseDTO(Challenge entity) {
+        if (entity == null) {
             return null;
         }
 
@@ -23,12 +26,10 @@ public class ChallengeMapper {
         dto.setStatus(entity.getStatus());
         dto.setCreatedAt(entity.getCreatedAt());
         dto.setUpdatedAt(entity.getUpdatedAt());
-        
+
         return dto;
 
-
     }
-
 
     public Challenge toEntity(ChallengeCreateDTO dto) {
         if (dto == null) {
@@ -44,27 +45,30 @@ public class ChallengeMapper {
         return entity;
     }
 
-    public Challenge toEntity(ChallengeUpdateDTO dto) {
-        if (dto == null) {
-            return null;
+    public static void updateEntity(Challenge challenge, ChallengeUpdateDTO dto) {
+        if (dto.getName() != null) {
+            challenge.setName(dto.getName());
         }
-        Challenge entity = new Challenge();
-        entity.setName(dto.getName());
-        entity.setDescription(dto.getDescription());
-        entity.setFrequency(dto.getFrequency());
-        entity.setPoints(dto.getPoints());
-        entity.setCategory(dto.getCategory());
-        entity.setImage(dto.getImage());
-        
-        // Assuming the Status enum in ChallengeUpdateDTO
+        if (dto.getDescription() != null) {
+            challenge.setDescription(dto.getDescription());
+        }
+        if (dto.getFrequency() != null) {
+            challenge.setFrequency(dto.getFrequency());
+        }
+        if (dto.getPoints() != null) {
+            challenge.setPoints(dto.getPoints());
+        }
+        if (dto.getCategory() != null) {
+            challenge.setCategory(dto.getCategory());
+        }
+        if (dto.getImage() != null) {
+            challenge.setImage(dto.getImage());
+        }
         if (dto.getStatus() != null) {
-            entity.setStatus(dto.getStatus()); // Assuming Challenge entity has a 'status' field of Status enum type
+            challenge.setStatus(dto.getStatus());
         }
-        
-        return entity;
+
+        challenge.setUpdatedAt(LocalDateTime.now());
     }
 
-    
-   
 }
-
