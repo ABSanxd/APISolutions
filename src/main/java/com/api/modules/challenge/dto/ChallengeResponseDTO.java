@@ -4,6 +4,7 @@ import com.api.common.enums.Frequency;
 
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
@@ -15,4 +16,7 @@ public class ChallengeDTO {
     private Integer points;
     private Category category;
     private String image;
+    private String status;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }
