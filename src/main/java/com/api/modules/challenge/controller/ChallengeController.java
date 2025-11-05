@@ -81,9 +81,9 @@ public class ChallengeController {
     }
 
     @PutMapping("/{id}/inactivate")
-    public ResponseEntity<ApiResponse<ChallengeResponseDTO>> Deletechallenge(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<ChallengeResponseDTO>> deletechallenge(@PathVariable UUID id) {
 
-        ChallengeResponseDTO inactiveChallenge = challengeService.Deletechallenge(id);
+        ChallengeResponseDTO inactiveChallenge = challengeService.deletechallenge(id);
 
         return ResponseEntity
                 .ok(ApiResponse.success(inactiveChallenge, "Reto inactivado correctamente."));
