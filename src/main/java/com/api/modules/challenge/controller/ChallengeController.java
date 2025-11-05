@@ -79,18 +79,6 @@ public class ChallengeController {
 
     //----------------------
 
-    // POST /api/v1/challenges/pets/{petId}/complete/{challengeId}
-    // Marca un reto como completado para una mascota, actualiza XP y verifica
-    // logros.
-    @PostMapping("/pets/{petId}/complete/{challengeId}")
-    public ResponseEntity<ApiResponse<Void>> completeChallenge(
-            @PathVariable UUID petId,
-            @PathVariable UUID challengeId) {
-
-        challengeService.completeChallenge(petId, challengeId);
-
-        return ResponseEntity
-                .ok(ApiResponse.success(null, "Reto completado, XP y progreso de logros actualizado."));
-    }
+   
 
 }
