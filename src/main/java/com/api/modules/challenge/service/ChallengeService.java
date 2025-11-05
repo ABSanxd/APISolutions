@@ -65,7 +65,7 @@ public class ChallengeService {
     }
 
     
-    public ChallengeResponseDTO Deletechallenge(UUID id) {
+    public ChallengeResponseDTO deletechallenge(UUID id) {
 
         Challenge existingChallenge = challengeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Reto no encontrado con ID: " + id));
@@ -76,12 +76,15 @@ public class ChallengeService {
         return challengeMapper.toResponseDTO(inactiveChallenge);
     }
 
-    // método de consulta (GET /api/v1/challenges)
+    
     public List<ChallengeResponseDTO> findAllChallenges(Category category, Frequency frequency) {
         List<Challenge> challenges;
+        //filtrar por categoria y frecuencia
         if (category != null && frequency != null) {
             challenges = challengeRepository.findByCategoryAndFrequency(category, frequency);
-        } else if (category != null) {
+        }
+        //solo cateogria 
+        else if (category != null) {
             challenges = challengeRepository.findByCategory(category);
         } else if (frequency != null) {
             challenges = challengeRepository.findByFrequency(frequency);
