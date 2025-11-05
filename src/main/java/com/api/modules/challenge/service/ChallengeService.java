@@ -5,7 +5,7 @@ import com.api.common.enums.Frequency;
 import com.api.common.enums.Status;
 import com.api.common.exception.ResourceNotFoundException;
 import com.api.modules.challenge.dto.ChallengeCreateDTO;
-import com.api.modules.challenge.dto.ChallengeDTO;
+import com.api.modules.challenge.dto.ChallengeResponseDTO;
 import com.api.modules.challenge.dto.ChallengeUpdateDTO;
 import com.api.modules.challenge.mapper.ChallengeMapper;
 import com.api.modules.challenge.model.Challenge;
@@ -34,7 +34,7 @@ public class ChallengeService {
     private final ChallengeRequirementsRepository requirementsRepository;
     private final ChallengeMapper challengeMapper;
 
-    public ChallengeDTO createChallenge(ChallengeCreateDTO dto) {
+    public ChallengeResponseDTO createChallenge(ChallengeCreateDTO dto) {
 
         // Mapear el DTO a la entidad
         Challenge challengeToSave = challengeMapper.toEntity(dto);
@@ -46,7 +46,7 @@ public class ChallengeService {
         return challengeMapper.toDTO(savedChallenge);
     }
 
-    public ChallengeDTO getChallengeById(UUID id) {
+    public ChallengeResponseDTO getChallengeById(UUID id) {
         Challenge challenge = challengeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Challenge not found with id: " + id));
 
@@ -54,7 +54,7 @@ public class ChallengeService {
     }
 
 
-    public ChallengeDTO updateChallenge(UUID id, ChallengeUpdateDTO dto) {
+    public ChallengeResponseDTO updateChallenge(UUID id, ChallengeUpdateDTO dto) {
 
         Challenge existingChallenge = challengeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Challenge not found with id: " + id));
@@ -80,7 +80,7 @@ public class ChallengeService {
     }
 
     @Transactional 
-    public ChallengeDTO inactivateChallenge(UUID id) {
+    public ChallengeResponseDTO inactivateChallenge(UUID id) {
  
         Challenge existingChallenge = challengeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Challenge not found with id: " + id));
@@ -94,7 +94,7 @@ public class ChallengeService {
     }
 
     // método de consulta (GET /api/v1/challenges)
-    public List<ChallengeDTO> findAllChallenges(Category category, Frequency frequency) {
+    public List<ChallengeResponseDTO> findAllChallenges(Category category, Frequency frequency) {
         List<Challenge> challenges;
         if (category != null && frequency != null) {
             challenges = challengeRepository.findByCategoryAndFrequency(category, frequency);

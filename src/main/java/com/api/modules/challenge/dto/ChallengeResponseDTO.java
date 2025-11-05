@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
-public class ChallengeDTO {
+public class ChallengeResponseDTO {
     private UUID id;
     private String name;
     private String description;

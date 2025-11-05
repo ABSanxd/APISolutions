@@ -2,7 +2,7 @@ package com.api.modules.challenge.controller;
 
 import com.api.common.response.ApiResponse;
 import com.api.modules.challenge.dto.ChallengeCreateDTO;
-import com.api.modules.challenge.dto.ChallengeDTO;
+import com.api.modules.challenge.dto.ChallengeResponseDTO;
 import com.api.modules.challenge.dto.ChallengeUpdateDTO;
 import com.api.modules.challenge.service.ChallengeService;
 
@@ -28,10 +28,10 @@ public class ChallengeController {
 
     // Metodo Agregado: POST /api/v1/challenges
     @PostMapping
-    public ResponseEntity<ApiResponse<ChallengeDTO>> createChallenge(
+    public ResponseEntity<ApiResponse<ChallengeResponseDTO>> createChallenge(
             @Valid @RequestBody ChallengeCreateDTO challengeDto) {
 
-        ChallengeDTO createdChallenge = challengeService.createChallenge(challengeDto);
+        ChallengeResponseDTO createdChallenge = challengeService.createChallenge(challengeDto);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED) // Código HTTP 201
@@ -41,19 +41,19 @@ public class ChallengeController {
     // gET /api/v1/challenges
     // Obtiene una lista de retos, con filtrado opcional por categoría y frecuencia.
     @GetMapping
-    public ResponseEntity<ApiResponse<List<ChallengeDTO>>> getAllChallenges(
+    public ResponseEntity<ApiResponse<List<ChallengeResponseDTO>>> getAllChallenges(
             @RequestParam(required = false) Category category,
             @RequestParam(required = false) Frequency frequency) {
 
-        List<ChallengeDTO> challenges = challengeService.findAllChallenges(category, frequency);
+        List<ChallengeResponseDTO> challenges = challengeService.findAllChallenges(category, frequency);
         return ResponseEntity.ok(ApiResponse.success(challenges, "Catálogo de retos obtenido correctamente."));
     }
 
     // GET /api/v1/challenges/{id}
     // Obtiene los detalles de un reto específico.
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<ChallengeDTO>> getChallengeById(@PathVariable UUID id) {
-        ChallengeDTO challenge = challengeService.getChallengeById(id);
+    public ResponseEntity<ApiResponse<ChallengeResponseDTO>> getChallengeById(@PathVariable UUID id) {
+        ChallengeResponseDTO challenge = challengeService.getChallengeById(id);
         return ResponseEntity.ok(ApiResponse.success(challenge, "Reto encontrado exitosamente."));
     }
 
@@ -72,18 +72,18 @@ public class ChallengeController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<ChallengeDTO>> updateChallenge(
+    public ResponseEntity<ApiResponse<ChallengeResponseDTO>> updateChallenge(
             @PathVariable UUID id,
             @Valid @RequestBody ChallengeUpdateDTO challengeDto) {
 
-        ChallengeDTO updatedChallenge = challengeService.updateChallenge(id, challengeDto);
+        ChallengeResponseDTO updatedChallenge = challengeService.updateChallenge(id, challengeDto);
         return ResponseEntity.ok(ApiResponse.success(updatedChallenge, "Reto actualizado correctamente."));
     }
 
     @PutMapping("/{id}/inactivate")
-    public ResponseEntity<ApiResponse<ChallengeDTO>> inactivateChallenge(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<ChallengeResponseDTO>> inactivateChallenge(@PathVariable UUID id) {
 
-        ChallengeDTO inactiveChallenge = challengeService.inactivateChallenge(id);
+        ChallengeResponseDTO inactiveChallenge = challengeService.inactivateChallenge(id);
 
         return ResponseEntity
                 .ok(ApiResponse.success(inactiveChallenge, "Reto inactivado correctamente."));
