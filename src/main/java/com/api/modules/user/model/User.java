@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import org.hibernate.annotations.UuidGenerator;
 
+import com.api.common.enums.CodePurpose;
 import com.api.common.enums.Status;
 import com.api.common.enums.UserLevel;
 
@@ -60,10 +61,17 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Status status = Status.ACTIVO;
+    private Status status = Status.PENDIENTE;
 
     @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
     private LocalDateTime updatedAt;
+
+    private String verificationCode; // El código
+    
+    private LocalDateTime codeExpiresAt; // Cuándo expira
+    
+    @Enumerated(EnumType.STRING)
+    private CodePurpose codePurpose; // VERIFICATION o RESET_PASSWORD
 }

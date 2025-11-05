@@ -7,9 +7,12 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.api.common.enums.Status;
+import com.api.modules.auth.service.EmailService;
 import com.api.modules.user.dto.UserCreateDTO;
 import com.api.modules.user.dto.UserResponseDTO;
 import com.api.modules.user.dto.UserUpdateDTO;
@@ -25,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
     // Obtener todos los usuarios
     public List<UserResponseDTO> getAllUsers() {
@@ -51,6 +55,9 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
 
         User savedUser = userRepository.save(user);
+
+        emailService.enviarCodigoVerificacion(savedUser);
+
         return UserMapper.toResponseDTO(savedUser);
     }
 
@@ -88,6 +95,18 @@ public class UserService {
 
         if (edad.getYears() < 9) {
             throw new IllegalArgumentException("Debes tener al menos 9 años para registrarte.");
+        }
+    }
+
+    // Se ejecuta una vez al día (por ejemplo, a las 3 AM)
+    @Scheduled(cron = "0 0 3 * * ?")
+    public void deleteOldPendingUsers() {
+        LocalDateTime limite = LocalDateTime.now().minusHours(48);
+        List<User> pendientes = userRepository.findByStatusAndCreatedAtBefore(Status.PENDIENTE, limite);
+
+        if (!pendientes.isEmpty()) {
+            userRepository.deleteAll(pendientes);
+            System.out.println("Usuarios pendientes eliminados: " + pendientes.size());
         }
     }
 }
