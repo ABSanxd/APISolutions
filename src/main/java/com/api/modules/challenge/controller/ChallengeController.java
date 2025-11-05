@@ -26,7 +26,6 @@ import java.util.UUID;
 public class ChallengeController {
     private final ChallengeService challengeService;
 
-    // Metodo Agregado: POST /api/v1/challenges
     @PostMapping
     public ResponseEntity<ApiResponse<ChallengeResponseDTO>> createChallenge(
             @Valid @RequestBody ChallengeCreateDTO challengeDto) {
@@ -38,7 +37,6 @@ public class ChallengeController {
                 .body(ApiResponse.success(createdChallenge, "Reto creado exitosamente."));
     }
 
-    // gET /api/v1/challenges
     // Obtiene una lista de retos, con filtrado opcional por categoría y frecuencia.
     @GetMapping
     public ResponseEntity<ApiResponse<List<ChallengeResponseDTO>>> getAllChallenges(
@@ -49,26 +47,10 @@ public class ChallengeController {
         return ResponseEntity.ok(ApiResponse.success(challenges, "Catálogo de retos obtenido correctamente."));
     }
 
-    // GET /api/v1/challenges/{id}
-    // Obtiene los detalles de un reto específico.
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ChallengeResponseDTO>> getChallengeById(@PathVariable UUID id) {
         ChallengeResponseDTO challenge = challengeService.getChallengeById(id);
         return ResponseEntity.ok(ApiResponse.success(challenge, "Reto encontrado exitosamente."));
-    }
-
-    // POST /api/v1/challenges/pets/{petId}/complete/{challengeId}
-    // Marca un reto como completado para una mascota, actualiza XP y verifica
-    // logros.
-    @PostMapping("/pets/{petId}/complete/{challengeId}")
-    public ResponseEntity<ApiResponse<Void>> completeChallenge(
-            @PathVariable UUID petId,
-            @PathVariable UUID challengeId) {
-
-        challengeService.completeChallenge(petId, challengeId);
-
-        return ResponseEntity
-                .ok(ApiResponse.success(null, "Reto completado, XP y progreso de logros actualizado."));
     }
 
     @PutMapping("/{id}")
@@ -80,7 +62,7 @@ public class ChallengeController {
         return ResponseEntity.ok(ApiResponse.success(updatedChallenge, "Reto actualizado correctamente."));
     }
 
-    @PutMapping("/{id}/inactivate")
+    @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<ChallengeResponseDTO>> deletechallenge(@PathVariable UUID id) {
 
         ChallengeResponseDTO inactiveChallenge = challengeService.deletechallenge(id);
@@ -94,5 +76,9 @@ public class ChallengeController {
         ChallengeResponseDTO activated = challengeService.activateChallenge(id);
         return ResponseEntity.ok(ApiResponse.success(activated, "Reto activado correctamente."));
     }
+
+    //----------------------
+
+   
 
 }
