@@ -98,8 +98,7 @@ public class ChallengeService {
     }
 
     // ---------------------------------
-    //// Nuevo método para obtener la entidad Challenge (necesario para
-    //// PetChallengeService)
+    //// Nuevo método para obtener Challenge pero en su formato Entidad (necesario para PetChallengeService)
     public Challenge findChallengeEntityById(UUID id) {
         return challengeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Reto no encontrado con ID: " + id));

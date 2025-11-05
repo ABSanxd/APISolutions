@@ -55,7 +55,7 @@ public class Pet {
     @Column(name = "pet_weight")
     private BigDecimal petWeight;
 
-    @Column(name = "photo")
+    @Column(columnDefinition = "TEXT") 
     private String photo;
 
     @Column(name = "status", nullable = false)
