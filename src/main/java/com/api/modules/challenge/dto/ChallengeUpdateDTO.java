@@ -15,5 +15,6 @@ public class ChallengeUpdateDTO {
     private Category category;
     private String image;
     private Status status;
+    
 
 }

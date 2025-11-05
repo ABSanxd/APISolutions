@@ -1,5 +1,4 @@
 package com.api.modules.challenge.mapper;
-
 import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Component;
@@ -10,8 +9,8 @@ import com.api.modules.challenge.dto.ChallengeUpdateDTO;
 
 @Component
 public class ChallengeMapper {
-    public ChallengeResponseDTO toResponseDTO(Challenge entity) {
-        if (entity == null) {
+    public ChallengeResponseDTO toResponseDTO(Challenge entity){
+        if(entity == null){
             return null;
         }
 
@@ -26,10 +25,12 @@ public class ChallengeMapper {
         dto.setStatus(entity.getStatus());
         dto.setCreatedAt(entity.getCreatedAt());
         dto.setUpdatedAt(entity.getUpdatedAt());
-
+        
         return dto;
 
+
     }
+
 
     public Challenge toEntity(ChallengeCreateDTO dto) {
         if (dto == null) {
@@ -44,6 +45,8 @@ public class ChallengeMapper {
         entity.setImage(dto.getImage());
         return entity;
     }
+
+    
 
     public static void updateEntity(Challenge challenge, ChallengeUpdateDTO dto) {
         if (dto.getName() != null) {
@@ -67,8 +70,12 @@ public class ChallengeMapper {
         if (dto.getStatus() != null) {
             challenge.setStatus(dto.getStatus());
         }
-
+        
         challenge.setUpdatedAt(LocalDateTime.now());
     }
 
+
+    
+   
 }
+

@@ -48,46 +48,29 @@ public class ChallengeService {
 
     public ChallengeResponseDTO getChallengeById(UUID id) {
         Challenge challenge = challengeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Challenge not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Reto no encontrado con ID: " + id));
 
         return challengeMapper.toResponseDTO(challenge);
     }
 
-
     public ChallengeResponseDTO updateChallenge(UUID id, ChallengeUpdateDTO dto) {
 
         Challenge existingChallenge = challengeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Challenge not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Reto no encontrado con ID: " + id));
 
-        if (dto.getName() != null)
-            existingChallenge.setName(dto.getName());
-        if (dto.getDescription() != null)
-            existingChallenge.setDescription(dto.getDescription());
-        if (dto.getFrequency() != null)
-            existingChallenge.setFrequency(dto.getFrequency());
-        if (dto.getPoints() != null)
-            existingChallenge.setPoints(dto.getPoints());
-        if (dto.getCategory() != null)
-            existingChallenge.setCategory(dto.getCategory());
-        if (dto.getImage() != null)
-            existingChallenge.setImage(dto.getImage());
+        ChallengeMapper.updateEntity(existingChallenge, dto);
 
-        // @UpdateTimestamp o manualmente.
-
-        // Guardar y devolver
         Challenge updatedChallenge = challengeRepository.save(existingChallenge);
         return challengeMapper.toResponseDTO(updatedChallenge);
     }
 
-    @Transactional 
-    public ChallengeResponseDTO inactivateChallenge(UUID id) {
- 
+    
+    public ChallengeResponseDTO Deletechallenge(UUID id) {
+
         Challenge existingChallenge = challengeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Challenge not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Reto no encontrado con ID: " + id));
 
         existingChallenge.setStatus(Status.INACTIVO);
-
-
 
         Challenge inactiveChallenge = challengeRepository.save(existingChallenge);
         return challengeMapper.toResponseDTO(inactiveChallenge);
@@ -114,10 +97,10 @@ public class ChallengeService {
     @Transactional
     public void completeChallenge(UUID petId, UUID challengeId) {
         Pet pet = petRepository.findById(petId)
-                .orElseThrow(() -> new ResourceNotFoundException("Pet not found with id: " + petId));
+                .orElseThrow(() -> new ResourceNotFoundException("Mascota no encontrada con ID: " + petId));
 
         Challenge challenge = challengeRepository.findById(challengeId)
-                .orElseThrow(() -> new ResourceNotFoundException("Challenge not found with id: " + challengeId));
+                .orElseThrow(() -> new ResourceNotFoundException("Reto no encontrado con ID: " + challengeId));
         // si no encuentra la mascota o el reto, lanza excepcion
 
         // registrar avance
