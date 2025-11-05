@@ -2,6 +2,7 @@ package com.api.modules.pet.model;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import org.hibernate.annotations.UuidGenerator;
@@ -16,9 +17,11 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Data;
-
+import com.api.modules.petchallenge.models.PetChallenge;
+import jakarta.persistence.CascadeType;
 @Data
 @Entity
 @Table(name = "pet")
@@ -67,4 +70,7 @@ public class Pet {
 
     @Column(name = "updated_in")
     private LocalDateTime updatedIn;
+
+    @OneToMany(mappedBy = "pet", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PetChallenge> petChallenges;
 }

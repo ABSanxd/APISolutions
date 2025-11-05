@@ -13,7 +13,9 @@ import java.util.UUID;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.UuidGenerator;
-
+import com.api.modules.petchallenge.models.PetChallenge;
+import jakarta.persistence.CascadeType;
+import java.util.List;
 
 @Data
 @Entity
@@ -56,5 +58,8 @@ public class Challenge {
     @UpdateTimestamp
     @Column(nullable = false)
     private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "challenge", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PetChallenge> petChallenges;
 
 }
