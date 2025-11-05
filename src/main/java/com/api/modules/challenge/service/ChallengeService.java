@@ -87,9 +87,8 @@ public class ChallengeService {
         Challenge activated = challengeRepository.save(existingChallenge);
 
         return challengeMapper.toResponseDTO(activated);
-    }  
+    }
 
-    // método de consulta (GET /api/v1/challenges)
     public List<ChallengeResponseDTO> findAllChallenges(Category category, Frequency frequency) {
         List<Challenge> challenges;
         if (category != null && frequency != null) {
@@ -104,6 +103,8 @@ public class ChallengeService {
         return challenges.stream().map(challengeMapper::toResponseDTO).collect(Collectors.toList());
 
     }
+
+    // ---------------------------------
 
     // logica para marcar reto como completado, actualizar xp y verificar logros
     // endpoint: POST /api/v1/challenges/pets/{petId}/complete/{challengeId}
