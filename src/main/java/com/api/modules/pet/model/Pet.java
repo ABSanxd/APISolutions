@@ -55,8 +55,10 @@ public class Pet {
     @Column(name = "pet_weight")
     private BigDecimal petWeight;
 
-    @Column(name = "photo")
+    // --- AÑADE ESTA ANOTACIÓN ---
+    @Column(name = "photo", columnDefinition = "TEXT")
     private String photo;
+    // --- FIN DE LA MODIFICACIÓN ---
 
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)

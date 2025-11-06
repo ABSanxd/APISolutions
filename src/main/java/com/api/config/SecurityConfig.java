@@ -2,8 +2,9 @@ package com.api.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpMethod; 
 import org.springframework.security.authentication.AuthenticationManager;
+import static org.springframework.security.config.Customizer.withDefaults;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -25,27 +26,31 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+                .cors(withDefaults()) 
+                
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/login").permitAll()
-                        .requestMatchers("/api/v1/users").permitAll()
+                        // --- RUTAS PÚBLICAS ---
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/api/v1/users/**").authenticated()
-                        .anyRequest().permitAll())
+                        .requestMatchers("/api/v1/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/users").permitAll() 
+                        .requestMatchers(HttpMethod.GET, "/api/v1/advertisements/zone/**").permitAll()
+
+                        // --- RUTAS PROTEGIDAS ---
+                        // /publications, /api/v1/adoption-requests, etc.
+                        .anyRequest().authenticated() 
+                )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    // Este Bean lo dejaré para evitar complicaciones futuras , por el momento no se esta usando
-    // Es usado para acoplacion con AUTH2 (pero estamos usando JWT)
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
     }
 
-    // Este si se usa, para la encriptacion de la contraseña
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

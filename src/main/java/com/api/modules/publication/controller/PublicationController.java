@@ -4,15 +4,17 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.api.common.response.ApiResponse;
@@ -33,112 +35,90 @@ public class PublicationController {
 
 	@PostMapping
 	public ResponseEntity<ApiResponse<PublicationResponseDTO>> create(
-			Authentication authentication,
+			@AuthenticationPrincipal User user, 
 			@Validated @RequestBody PublicationCreateDTO dto) {
-
-		// Validar que la autenticación y el principal existan
-		if (authentication == null || authentication.getPrincipal() == null) {
+		// ... (sin cambios) ...
+		if (user == null) {
 			return ResponseEntity.status(401)
 					.body(ApiResponse.fail("Usuario no autenticado", 401));
 		}
-
-		Object principal = authentication.getPrincipal();
-		UUID userUuid;
-
-		// Verifica si el principal es tu objeto User
-		if (principal instanceof User user) {
-			userUuid = user.getId(); // Obtiene el UUID directamente
-		} else {
-			// Si no es un objeto User, intenta parsear el nombre (menos ideal)
-			// Esto podría ser un fallback si cambias cómo configuras la autenticación
-			System.err.println(
-					"Advertencia: El principal de Authentication no es un objeto User. Intentando obtener ID desde getName(). Principal: "
-							+ principal);
-			try {
-				// Intenta obtener el nombre (que podría ser el UUID si el principal fuera un
-				// UserDetails simple)
-				String name = authentication.getName();
-				if (name == null) {
-					throw new IllegalArgumentException("authentication.getName() devolvió null");
-				}
-				userUuid = UUID.fromString(name);
-			} catch (IllegalArgumentException e) {
-				System.err
-						.println("Error crítico: No se pudo obtener un UUID válido del usuario autenticado. Principal: "
-								+ principal + ", Error: " + e.getMessage());
-				return ResponseEntity.status(500)
-						.body(ApiResponse.error("Error interno al identificar al usuario", 500));
-			}
-		}
-
-		String userId = userUuid.toString(); // Convierte el UUID a String para el servicio
-
+		String userId = user.getId().toString();
 		System.out.println("=== CREATE PUBLICATION ===");
 		System.out.println("userId from principal: " + userId);
 		System.out.println("tempName: " + dto.getTempName());
 		System.out.println("species: " + dto.getSpecies());
-		System.out.println("photo length: " + (dto.getPhoto() != null ? dto.getPhoto().length() : 0));
+		System.out.println("photos count: " + (dto.getPhotos() != null ? dto.getPhotos().size() : 0));
 		System.out.println("========================");
-
-		// Llama al servicio con el String del UUID correcto
 		return ResponseEntity.ok(service.create(userId, dto));
 	}
 
 	@GetMapping
 	public ResponseEntity<ApiResponse<List<PublicationResponseDTO>>> list(
-			Authentication authentication) {
-
-		// Si hay autenticación, devolver solo las del usuario
-		if (authentication != null && authentication.getPrincipal() != null) {
-
-			Object principal = authentication.getPrincipal();
-			UUID userUuid;
-
-			if (principal instanceof User user) {
-				userUuid = user.getId();
-			} else {
-				System.err.println(
-						"Advertencia GET: El principal de Authentication no es un objeto User. Intentando obtener ID desde getName(). Principal: "
-								+ principal);
-				try {
-					String name = authentication.getName();
-					if (name == null) {
-						throw new IllegalArgumentException("authentication.getName() devolvió null");
-					}
-					userUuid = UUID.fromString(name);
-				} catch (IllegalArgumentException e) {
-					System.err.println(
-							"Error crítico GET: No se pudo obtener un UUID válido del usuario autenticado. Principal: "
-									+ principal + ", Error: " + e.getMessage());
-					// Podrías devolver un error 500 o simplemente recurrir a listAll
-					return ResponseEntity.ok(service.listAll()); // Fallback a mostrar todas
-				}
-			}
-			String userId = userUuid.toString();
-			// --- FIN CORRECCIÓN SIMILAR PARA GET ---
-
-			System.out.println("GET /publications - userId: " + userId);
-			return ResponseEntity.ok(service.listByUserId(userId));
+			@AuthenticationPrincipal User user, 
+			@RequestParam(value = "view", defaultValue = "all") String view) {
+		// ... (sin cambios) ...
+		if (user == null) {
+			return ResponseEntity.status(401)
+					.body(ApiResponse.fail("Usuario no autenticado", 401));
 		}
-
-		System.out.println("GET /publications - No autenticado, devolviendo todas.");
-		return ResponseEntity.ok(service.listAll());
+		String userId = user.getId().toString();
+		System.out.println("GET /publications?view=" + view + " - userId: " + userId);
+		switch (view) {
+			case "available":
+				return ResponseEntity.ok(service.listAvailable(userId));
+			case "mine":
+				return ResponseEntity.ok(service.listByUserId(userId));
+			case "all":
+			default:
+				return ResponseEntity.ok(service.listAll());
+		}
 	}
 
+	// --- INICIO DE CAMBIOS ---
+	// AHORA REQUIERE AUTENTICACIÓN
 	@GetMapping("/{id}")
-	public ResponseEntity<ApiResponse<PublicationResponseDTO>> get(@PathVariable UUID id) {
-		return ResponseEntity.ok(service.getById(id));
+	public ResponseEntity<ApiResponse<PublicationResponseDTO>> get(
+			@PathVariable UUID id,
+			@AuthenticationPrincipal User user // <-- AÑADIDO
+	) {
+		if (user == null) {
+			return ResponseEntity.status(401).body(ApiResponse.fail("Usuario no autenticado", 401));
+		}
+		return ResponseEntity.ok(service.getById(id, user.getId())); // <-- AÑADIDO user.getId()
 	}
+	// --- FIN DE CAMBIOS ---
 
 	@PutMapping("/{id}")
 	public ResponseEntity<ApiResponse<PublicationResponseDTO>> update(
 			@PathVariable UUID id,
 			@RequestBody PublicationUpdateDTO dto) {
+		// ... (sin cambios) ...
 		return ResponseEntity.ok(service.update(id, dto));
 	}
 
 	@DeleteMapping("/{id}")
 	public ResponseEntity<ApiResponse<Object>> delete(@PathVariable UUID id) {
+		// ... (sin cambios) ...
 		return ResponseEntity.ok(service.delete(id));
+	}
+
+	// --- INICIO DE CAMBIOS ---
+	// AHORA REQUIERE AUTENTICACIÓN
+	@PatchMapping("/{id}/like")
+	public ResponseEntity<ApiResponse<PublicationResponseDTO>> like(
+			@PathVariable UUID id,
+			@AuthenticationPrincipal User user // <-- AÑADIDO
+	) {
+		if (user == null) {
+			return ResponseEntity.status(401).body(ApiResponse.fail("Usuario no autenticado", 401));
+		}
+		return ResponseEntity.ok(service.toggleLikePublication(id, user)); // <-- Llama al nuevo método
+	}
+	// --- FIN DE CAMBIOS ---
+
+	@PatchMapping("/{id}/share")
+	public ResponseEntity<ApiResponse<PublicationResponseDTO>> share(@PathVariable UUID id) {
+		// ... (sin cambios) ...
+		return ResponseEntity.ok(service.sharePublication(id));
 	}
 }
