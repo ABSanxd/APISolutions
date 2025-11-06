@@ -1,4 +1,4 @@
-package com.api.modules.auth.service;
+package com.api.modules.notification.service;
 
 import java.time.LocalDateTime;
 import java.util.Random;
@@ -8,6 +8,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import com.api.common.enums.CodePurpose;
+import com.api.modules.notification.model.Notification;
 import com.api.modules.user.model.User;
 import com.api.modules.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -49,5 +50,13 @@ public class EmailService {
                 CodePurpose.RESET_PASSWORD,
                 "Recuperación de contraseña - Woof Berlin",
                 "¡Hola %s! 🐾\n\nTu código para restablecer la contraseña es: %s\nEste código expirará en 5 minutos.\n\nSi no solicitaste esta recuperación, ignora este mensaje.");
+    }
+
+    public void sendNotificationEmail(Notification notification) {
+        SimpleMailMessage mensaje = new SimpleMailMessage();
+        mensaje.setTo(notification.getUser().getEmail());
+        mensaje.setSubject(notification.getTitle());
+        mensaje.setText(notification.getMessage());
+        mailSender.send(mensaje);
     }
 }
