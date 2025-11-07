@@ -6,33 +6,35 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
+import com.api.common.enums.PetLevel;
 import com.api.common.enums.Status;
+import com.api.common.exception.ResourceNotFoundException;
 import com.api.modules.pet.dto.PetCreateDTO;
 import com.api.modules.pet.dto.PetResponseDTO;
 import com.api.modules.pet.dto.PetUpdateDTO;
 import com.api.modules.pet.mapper.PetMapper;
 import com.api.modules.pet.model.Pet;
 import com.api.modules.pet.repository.PetRepository;
-import com.api.modules.user.model.User; 
-import com.api.modules.user.repository.UserRepository; 
+import com.api.modules.user.model.User;
+import com.api.modules.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class PetService {
-    
-    private final PetRepository petRepository;
-    private final UserRepository userRepository; 
 
-    //mascotas por usuario (Sin cambios, JPA lo maneja)
+    private final PetRepository petRepository;
+    private final UserRepository userRepository;
+
+    // mascotas por usuario (Sin cambios, JPA lo maneja)
     public List<PetResponseDTO> getAllPetsByUser(UUID userId) {
         return petRepository.findByUserIdAndStatus(userId, Status.ACTIVO).stream()
                 .map(PetMapper::toResponseDTO)
                 .toList();
     }
 
-    //obtener mascota por id (Sin cambios, JPA lo maneja)
+    // obtener mascota por id (Sin cambios, JPA lo maneja)
     public PetResponseDTO getPetById(UUID id, UUID userId) {
         return petRepository.findByIdAndUserId(id, userId)
                 .map(PetMapper::toResponseDTO)
@@ -50,8 +52,8 @@ public class PetService {
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado para crear la mascota"));
 
         // 2. Pasar el objeto User completo al mapper
-        Pet pet = PetMapper.toEntity(dto, user); 
-        
+        Pet pet = PetMapper.toEntity(dto, user);
+
         Pet savedPet = petRepository.save(pet);
         return PetMapper.toResponseDTO(savedPet);
     }
@@ -62,7 +64,7 @@ public class PetService {
                 .map(pet -> {
                     PetMapper.updateEntity(pet, dto);
                     pet.setUpdatedIn(LocalDateTime.now());
-                    
+
                     Pet updatedPet = petRepository.save(pet);
                     return PetMapper.toResponseDTO(updatedPet);
                 })
@@ -73,7 +75,7 @@ public class PetService {
     public void deletePet(UUID id, UUID userId) {
         Pet pet = petRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new RuntimeException("Mascota no encontrada para eliminar"));
-        
+
         pet.setStatus(Status.INACTIVO);
         pet.setUpdatedIn(LocalDateTime.now());
         petRepository.save(pet);
@@ -82,5 +84,43 @@ public class PetService {
     // (Sin cambios, JPA lo maneja)
     public long countActivePets(UUID userId) {
         return petRepository.countByUserIdAndStatus(userId, Status.ACTIVO);
+    }
+
+    /// ESTO SE USA EN EL CHALLENGE --- NO TOCAR (solo quienes manejan retos :,D) ////
+    // obtener Pet en su formato puro Entidad
+    public Pet findById(UUID petId) {
+        return petRepository.findById(petId)
+                .orElseThrow(() -> new ResourceNotFoundException("Mascota no encontrada con ID: " + petId));
+    }
+
+    public Pet checkAndLevelUp(Pet pet) {
+
+        Integer currentXp = pet.getPetXp();
+        PetLevel currentLevel = pet.getNivel();
+        PetLevel newLevel = currentLevel; // Asumimos que no sube de nivel
+
+        if (currentXp <= 100) {
+            newLevel = PetLevel.NOVATO;
+        } else if (currentXp <= 350) {
+            newLevel = PetLevel.EXPLORADOR;
+        } else if (currentXp <= 500) {
+            newLevel = PetLevel.CAZADOR;
+        } else if (currentXp <= 1000) {
+            newLevel = PetLevel.MAESTRO;
+        } else if (currentXp <= 2000) {
+            newLevel = PetLevel.ALFA;
+        }
+
+        if (newLevel != currentLevel) {
+            pet.setNivel(newLevel);
+            // aqui se podria agregar lógica para dar una recompensa por subir de nivel ..
+        }
+
+        // Retornar la mascota actualizada
+        return pet;
+    }
+
+    public Pet save(Pet pet) {
+        return petRepository.save(pet);
     }
 }
