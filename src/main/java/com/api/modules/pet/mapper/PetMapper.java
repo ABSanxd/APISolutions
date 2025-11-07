@@ -1,21 +1,25 @@
 package com.api.modules.pet.mapper;
 
-import java.util.UUID;
-
+import java.time.LocalDate;
+import java.time.Period;
 import com.api.modules.pet.dto.PetCreateDTO;
 import com.api.modules.pet.dto.PetResponseDTO;
 import com.api.modules.pet.dto.PetUpdateDTO;
 import com.api.modules.pet.model.Pet;
+import com.api.modules.user.model.User;
 
 public class PetMapper {
 
-    public static Pet toEntity(PetCreateDTO dto, UUID userId) {
+    public static Pet toEntity(PetCreateDTO dto, User user) {
         Pet pet = new Pet();
-        pet.setUserId(userId);
+        
+        pet.setUser(user);
         pet.setNombre(dto.getNombre());
         pet.setEspecie(dto.getEspecie());
         pet.setBreed(dto.getBreed());
-        pet.setPetAge(dto.getPetAge());
+        
+        pet.setBirthDate(dto.getBirthDate());
+
         pet.setPetWeight(dto.getPetWeight());
         pet.setPhoto(dto.getPhoto());
         return pet;
@@ -28,8 +32,10 @@ public class PetMapper {
             pet.setEspecie(dto.getEspecie());
         if (dto.getBreed() != null)
             pet.setBreed(dto.getBreed());
-        if (dto.getPetAge() != null)
-            pet.setPetAge(dto.getPetAge());
+
+        if (dto.getBirthDate() != null)
+            pet.setBirthDate(dto.getBirthDate());
+    
         if (dto.getPetWeight() != null)
             pet.setPetWeight(dto.getPetWeight());
         if (dto.getPhoto() != null)
@@ -39,13 +45,25 @@ public class PetMapper {
     public static PetResponseDTO toResponseDTO(Pet pet) {
         PetResponseDTO dto = new PetResponseDTO();
         dto.setId(pet.getId());
-        dto.setUserId(pet.getUserId());
+        
+        if (pet.getUser() != null) {
+            dto.setUserId(pet.getUser().getId());
+        }
+
         dto.setNombre(pet.getNombre());
         dto.setEspecie(pet.getEspecie());
         dto.setNivel(pet.getNivel());
         dto.setPetXp(pet.getPetXp());
         dto.setBreed(pet.getBreed());
-        dto.setPetAge(pet.getPetAge());
+
+        if (pet.getBirthDate() != null) {
+            Period age = Period.between(pet.getBirthDate(), LocalDate.now());
+            
+            dto.setAgeYears(age.getYears());
+            dto.setAgeMonths(age.getMonths());
+            dto.setBirthDate(pet.getBirthDate()); 
+        }
+
         dto.setPetWeight(pet.getPetWeight());
         dto.setPhoto(pet.getPhoto());
         dto.setStatus(pet.getStatus());

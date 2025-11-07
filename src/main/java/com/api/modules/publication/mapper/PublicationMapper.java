@@ -1,14 +1,14 @@
 package com.api.modules.publication.mapper;
 
-import com.api.modules.publication.dto.PublicationCreateDTO;
-import com.api.modules.publication.dto.PublicationResponseDTO;
+import com.api.modules.publication.dto.ControllerCreateDTO;
+import com.api.modules.publication.dto.PublicartionResponseDTO;
 import com.api.modules.publication.dto.PublicationUpdateDTO;
 import com.api.modules.publication.model.Publication;
 import com.api.modules.user.model.User;
 
 public class PublicationMapper {
 
-    public static Publication toEntity(PublicationCreateDTO dto, User user) {
+    public static Publication toEntity(ControllerCreateDTO dto, User user) {
         Publication p = new Publication();
         p.setTempName(dto.getTempName());
         p.setSpecies(dto.getSpecies());
@@ -48,8 +48,8 @@ public class PublicationMapper {
             p.setDistrict(dto.getDistrict());
     }
 
-    public static PublicationResponseDTO toResponseDTO(Publication p) {
-        PublicationResponseDTO dto = new PublicationResponseDTO();
+    public static PublicartionResponseDTO toResponseDTO(Publication p) {
+        PublicartionResponseDTO dto = new PublicartionResponseDTO();
         dto.setId(p.getId());
         dto.setTempName(p.getTempName());
         dto.setSpecies(p.getSpecies());

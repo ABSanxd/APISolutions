@@ -5,11 +5,10 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.annotations.UuidGenerator;
 import org.hibernate.type.SqlTypes;
 
-import com.api.common.enums.Species;
 import com.api.common.enums.Status;
+import com.api.common.enums.species;
 import com.api.modules.user.model.User;
 
 import jakarta.persistence.Column;
@@ -18,6 +17,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -28,10 +28,9 @@ import lombok.Data;
 @Entity
 @Table(name = "publication")
 public class Publication {
-    
+
     @Id
-    @GeneratedValue
-    @UuidGenerator
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -43,7 +42,7 @@ public class Publication {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Species species;
+    private species species;
 
     @Column(name = "approx_age", nullable = false)
     private String approxAge;
