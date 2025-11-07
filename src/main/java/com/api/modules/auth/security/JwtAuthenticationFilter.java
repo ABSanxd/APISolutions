@@ -39,16 +39,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             if (StringUtils.hasText(token) && jwtUtils.validateToken(token)) {
                 String userId = jwtUtils.getUserIdFromToken(token);
-                // Aquí 'user' ya es una instancia de UserDetails
-                User user = userRepository.findById(UUID.fromString(userId)).orElse(null); 
+                User user = userRepository.findById(UUID.fromString(userId)).orElse(null);
 
                 if (user != null) {
-                    // --- MODIFICACIÓN AQUÍ ---
-                    // Ahora pasamos los permisos reales del usuario
                     UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                            user, null, user.getAuthorities()); // <--- USAMOS EL MÉTODO DE UserDetails
-                    // --- FIN DE MODIFICACIÓN ---
-                    
+                            user, null, null);
                     auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                     SecurityContextHolder.getContext().setAuthentication(auth);

@@ -1,5 +1,6 @@
 package com.api.modules.adoption.service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -27,16 +28,16 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class AdoptionRequestService {
-    
+
     private final AdoptionRequestRepository adoptionRequestRepository;
     private final PublicationRepository publicationRepository;
-    private final PetRepository petRepository; 
+    private final PetRepository petRepository;
 
     @Transactional
     public ApiResponse<AdoptionRequestResponseDTO> createRequest(User applicant, AdoptionRequestCreateDTO dto) {
-        
+
         Publication publication = publicationRepository.findById(dto.getPublicationId())
-            .orElseThrow(() -> new RuntimeException("Publicación no encontrada"));
+                .orElseThrow(() -> new RuntimeException("Publicación no encontrada"));
 
         if (publication.getStatus() != Status.ACTIVO) {
             return ApiResponse.fail("No se puede solicitar una publicación que no está activa", 400);
@@ -47,10 +48,9 @@ public class AdoptionRequestService {
         }
 
         boolean alreadyPending = adoptionRequestRepository.existsByApplicantIdAndPublicationIdAndStatus(
-            applicant.getId(), 
-            dto.getPublicationId(), 
-            Status.PENDIENTE
-        );
+                applicant.getId(),
+                dto.getPublicationId(),
+                Status.PENDIENTE);
         if (alreadyPending) {
             return ApiResponse.fail("Ya tienes una solicitud pendiente para esta mascota", 400);
         }
@@ -62,40 +62,36 @@ public class AdoptionRequestService {
             return ApiResponse.fail("Máximo de mascotas alcanzado. No puedes adoptar más.", 400);
         }
 
-        AdoptionRequest newRequest = new AdoptionRequest(
-            applicant, 
-            publication
-        );
-        
+        AdoptionRequest newRequest = new AdoptionRequest(applicant, publication);
+
         AdoptionRequest savedRequest = adoptionRequestRepository.save(newRequest);
 
         return ApiResponse.success(
-            AdoptionRequestMapper.toResponseDTO(savedRequest), 
-            "Solicitud enviada correctamente"
-        );
+                AdoptionRequestMapper.toResponseDTO(savedRequest),
+                "Solicitud enviada correctamente");
     }
 
     public ApiResponse<List<AdoptionRequestResponseDTO>> getReceivedRequests(User owner) {
         List<AdoptionRequest> requests = adoptionRequestRepository.findRequestsReceivedByOwnerId(owner.getId());
         List<AdoptionRequestResponseDTO> dtos = requests.stream()
-            .map(AdoptionRequestMapper::toResponseDTO)
-            .collect(Collectors.toList());
+                .map(AdoptionRequestMapper::toResponseDTO)
+                .collect(Collectors.toList());
         return ApiResponse.success(dtos, "Solicitudes recibidas obtenidas");
     }
 
     public ApiResponse<List<AdoptionRequestResponseDTO>> getSentRequests(User applicant) {
         List<AdoptionRequest> requests = adoptionRequestRepository.findByApplicantId(applicant.getId());
         List<AdoptionRequestResponseDTO> dtos = requests.stream()
-            .map(AdoptionRequestMapper::toResponseDTO)
-            .collect(Collectors.toList());
+                .map(AdoptionRequestMapper::toResponseDTO)
+                .collect(Collectors.toList());
         return ApiResponse.success(dtos, "Solicitudes enviadas obtenidas");
     }
 
     @Transactional
     public ApiResponse<AdoptionRequestResponseDTO> updateRequestStatus(UUID requestId, Status newStatus, User user) {
-        
+
         AdoptionRequest request = adoptionRequestRepository.findById(requestId)
-            .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
+                .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
 
         Publication publication = request.getPublication();
 
@@ -129,28 +125,27 @@ public class AdoptionRequestService {
             }
 
             Pet newPet = new Pet();
-            newPet.setUserId(applicant.getId());
+            newPet.setUser(applicant);
             newPet.setNombre(publication.getTempName());
             newPet.setEspecie(publication.getSpecies());
-            
+
             if (publication.getPhotos() != null && !publication.getPhotos().isEmpty()) {
                 newPet.setPhoto(publication.getPhotos().get(0));
             }
-            
-            newPet.setPetAge(parseApproxAge(publication.getApproxAge())); 
-            
-            // --- ¡SOLUCIÓN AQUÍ! ---
-            // Asignamos un valor por defecto ya que Publication no tiene "breed"
-            newPet.setBreed("No especificado"); 
-            // --- FIN DE LA SOLUCIÓN ---
-            
+
+            // Cambio aquí: ya no usamos setPetAge
+            newPet.setBirthDate(calculateBirthDateFromApproxAge(publication.getApproxAge()));
+
+            // Por defecto
+            newPet.setBreed("No especificado");
+
             petRepository.save(newPet);
 
             publication.setStatus(Status.ADOPTADO);
             publicationRepository.save(publication);
 
             request.setStatus(Status.ACEPTADO);
-            
+
             rejectOtherPendingRequests(publication.getId(), request.getId());
         } else {
             request.setStatus(newStatus);
@@ -161,12 +156,10 @@ public class AdoptionRequestService {
     }
 
     private void rejectOtherPendingRequests(UUID publicationId, UUID acceptedRequestId) {
-        List<AdoptionRequest> otherRequests = 
-            adoptionRequestRepository.findByPublicationIdAndStatusAndIdNot(
-                publicationId, 
-                Status.PENDIENTE, 
-                acceptedRequestId
-            );
+        List<AdoptionRequest> otherRequests = adoptionRequestRepository.findByPublicationIdAndStatusAndIdNot(
+                publicationId,
+                Status.PENDIENTE,
+                acceptedRequestId);
 
         for (AdoptionRequest req : otherRequests) {
             req.setStatus(Status.RECHAZADO);
@@ -176,23 +169,39 @@ public class AdoptionRequestService {
         System.out.println("Rechazadas " + otherRequests.size() + " otras solicitudes pendientes.");
     }
 
+    // 🔹 Detecta si la edad está en años o meses
     private Integer parseApproxAge(String approxAge) {
         if (approxAge == null || approxAge.isBlank()) {
             return 0;
         }
         try {
-            Pattern pattern = Pattern.compile("(\\d+)"); 
+            Pattern pattern = Pattern.compile("(\\d+)");
             Matcher matcher = pattern.matcher(approxAge);
             if (matcher.find()) {
-                int age = Integer.parseInt(matcher.group(1));
-                if (approxAge.toLowerCase().contains("mes") || approxAge.toLowerCase().contains("meses")) {
-                    return 0; 
+                int number = Integer.parseInt(matcher.group(1));
+                if (approxAge.toLowerCase().contains("mes")) {
+                    // Convertir meses a años aproximados
+                    return Math.max(0, number / 12);
                 }
-                return age;
+                return number;
             }
         } catch (NumberFormatException e) {
-            // Ignorar error de parseo
+            // Ignorar error
         }
-        return 0; 
+        return 0;
+    }
+
+    // Convierte la edad aproximada (años o meses) a una fecha de nacimiento
+    private LocalDate calculateBirthDateFromApproxAge(String approxAge) {
+        int years = parseApproxAge(approxAge);
+        if (approxAge != null && approxAge.toLowerCase().contains("mes")) {
+            // Si el texto decía "meses", restamos meses
+            Matcher matcher = Pattern.compile("(\\d+)").matcher(approxAge);
+            if (matcher.find()) {
+                int months = Integer.parseInt(matcher.group(1));
+                return LocalDate.now().minusMonths(months);
+            }
+        }
+        return LocalDate.now().minusYears(years > 0 ? years : 1);
     }
 }
