@@ -12,7 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.api.common.enums.Status;
-import com.api.modules.auth.service.EmailService;
+import com.api.modules.notification.service.EmailService;
 import com.api.modules.user.dto.UserCreateDTO;
 import com.api.modules.user.dto.UserResponseDTO;
 import com.api.modules.user.dto.UserUpdateDTO;

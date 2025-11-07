@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.api.common.enums.CodePurpose;
 import com.api.common.enums.Status;
-import com.api.modules.auth.service.EmailService;
+import com.api.modules.notification.service.EmailService;
 import com.api.modules.user.model.User;
 import com.api.modules.user.repository.UserRepository;
 
