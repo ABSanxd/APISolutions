@@ -62,7 +62,7 @@ public class MotivationalNotificationService {
      *  - A las 09:00 a.m.
      *  - A las 06:00 p.m.
      */
-    @Scheduled(cron = "0 0 9,15 * * *", zone = "America/Lima")
+    @Scheduled(cron = "0 0 9,18 * * *", zone = "America/Lima")
     public void scheduledMotivationalNotifications() {
         sendMotivationalToAllUsers();
     }
