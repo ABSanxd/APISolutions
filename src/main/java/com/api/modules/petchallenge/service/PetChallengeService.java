@@ -1,5 +1,8 @@
 package com.api.modules.petchallenge.service;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -9,6 +12,8 @@ import com.api.modules.challenge.service.ChallengeService;
 import com.api.modules.pet.model.Pet;
 import com.api.modules.pet.service.PetService;
 import com.api.modules.petchallenge.dto.PetChallengeCreateDTO;
+import com.api.modules.petchallenge.dto.PetChallengeResponseDTO;
+import com.api.modules.petchallenge.mapper.PetChallengeMapper;
 import com.api.modules.petchallenge.models.PetChallenge;
 import com.api.modules.petchallenge.repository.PetChallengeRepository;
 
@@ -18,38 +23,75 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class PetChallengeService {
+
     private final PetChallengeRepository petChallengeRepository;
-    private final PetService petService; // Ahora con findById, save, checkAndLevelUp
-    private final ChallengeService challengeService; // Usado para obtener el Reto
-    // private final AchievementService achievementService; // Hook para la FASE 3
+    private final PetService petService;
+    private final ChallengeService challengeService;
+
+    // private final AchievementService achievementService;
 
     // Marcar reto como completado
     @Transactional
-    public PetChallenge completeChallenge(UUID petId, PetChallengeCreateDTO dto) {
-        
-        Pet pet = petService.findById(petId);
-        
-        // CORRECCIÓN: Acceder al campo directamente (dto.challengeId)
-        Challenge challenge = challengeService.findChallengeEntityById(dto.challengeId()); 
+    public PetChallengeResponseDTO completeChallenge(UUID petId, PetChallengeCreateDTO dto) {
 
-        // 1. Crear RetoMascota (Registro)
+        Pet pet = petService.findById(petId);
+
+        Challenge challenge = challengeService.findChallengeEntityById(dto.challengeId());
+
+        if (challenge.getStatus() != com.api.common.enums.Status.ACTIVO) {
+            throw new RuntimeException("El reto '" + challenge.getName() + "' no está activo y no puede ser completado.");
+        }
+
+        // Crear RetoMascota
         PetChallenge petChallenge = new PetChallenge();
         petChallenge.setPet(pet);
         petChallenge.setChallenge(challenge);
-        petChallengeRepository.save(petChallenge);
+        PetChallenge savedPetChallenge = petChallengeRepository.save(petChallenge);
 
-        // 2. Sumar XP
-        int xpGanado = challenge.getPoints(); // Asumiendo que Challenge tiene getPoints()
-        pet.setPetXp(pet.getPetXp() + xpGanado);
+        // Sumar XP
+        pet.setPetXp(pet.getPetXp() + challenge.getPoints());
+        // Verificar Nivel
+        petService.checkAndLevelUp(pet);
+        // guardamos desde aqui para que le añada los XP
+        petService.save(pet);
 
-        // 3. Verificar Nivel y Guardar
-        petService.checkAndLevelUp(pet); 
-        petService.save(pet); 
+        // DISPARAR EL HOOK DE LOGROS pendientee
+        /* achievementService.checkAchievements(pet, challenge); */
 
-        // 4. ⭐ DISPARAR EL HOOK DE LOGROS (Fase 3)
-        /*achievementService.checkAchievements(pet, challenge); */
-        
-        return petChallenge;
+        return PetChallengeMapper.toResponseDTO(savedPetChallenge);
+    }
+
+    // CONSULTAS
+    // Historial de retos completados por una mascota, ordenados por fecha
+    public List<PetChallengeResponseDTO> getPetChallengeHistory(UUID petId) {
+        petService.findById(petId);
+        List<PetChallenge> petChallenges = petChallengeRepository.findByPetIdOrderByCreatedAtDesc(petId);
+
+        return PetChallengeMapper.toResponseDTOList(petChallenges);
+    }
+
+    // retos completados por una mascota - HOY
+    public List<PetChallengeResponseDTO> getPetChallengesToday(UUID petId) {
+        petService.findById(petId);
+
+        LocalDateTime startOfDay = LocalDateTime.now().truncatedTo(ChronoUnit.DAYS);
+        LocalDateTime endOfDay = startOfDay.plusDays(1).minusNanos(1); // Hasta el final del día
+
+        List<PetChallenge> petChallenges = petChallengeRepository
+                .findByPetIdAndCreatedAtBetween(petId, startOfDay, endOfDay);
+
+        return PetChallengeMapper.toResponseDTOList(petChallenges);
+    }
+
+    // Obtener retos completados esta SEMANA
+    public List<PetChallengeResponseDTO> getPetChallengesThisWeek(UUID petId) {
+        LocalDateTime startOfWeek = LocalDateTime.now().minusDays(7);
+        LocalDateTime now = LocalDateTime.now();
+
+        List<PetChallenge> petChallenges = petChallengeRepository
+                .findByPetIdAndCreatedAtBetween(petId, startOfWeek, now);
+
+        return PetChallengeMapper.toResponseDTOList(petChallenges);
     }
 
 }

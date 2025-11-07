@@ -78,12 +78,12 @@ public class PetService {
         return petRepository.countByUserIdAndStatus(userId, Status.ACTIVO);
     }
 
-    // metodo para manejar lógica de nivelación
+    // metodo para manejar lógica de niveles
     public Pet checkAndLevelUp(Pet pet) {
 
         Integer currentXp = pet.getPetXp();
         PetLevel currentLevel = pet.getNivel();
-        PetLevel newLevel = currentLevel; // Asumimos que no sube
+        PetLevel newLevel = currentLevel; // Asumimos que no sube de nivel
 
         if (currentXp <= 100) {
             newLevel = PetLevel.NOVATO;
@@ -99,10 +99,8 @@ public class PetService {
 
         if (newLevel != currentLevel) {
             pet.setNivel(newLevel);
-            // Opcional: Agregar lógica para dar una recompensa por subir de nivel
+            // aqui se podria agregar lógica para dar una recompensa por subir de nivel ..
         }
-
-        // Retornar la mascota actualizada
         return pet;
     }
 
@@ -111,7 +109,7 @@ public class PetService {
         return petRepository.save(pet);
     }
 
-    // 3. Método para obtener la Entidad Pet (PetChallengeService la necesita)
+    //obtener Pet en su formato puro Entidad 
     public Pet findById(UUID petId) {
         return petRepository.findById(petId)
                 .orElseThrow(() -> new ResourceNotFoundException("Mascota no encontrada con ID: " + petId));

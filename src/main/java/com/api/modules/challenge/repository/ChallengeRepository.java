@@ -22,6 +22,5 @@ public interface ChallengeRepository extends JpaRepository<Challenge, UUID> {
 
     boolean existsByName(String name);
 
-    
 }
 

@@ -9,4 +9,8 @@ public class PetChallengeResponseDTO {
     private UUID petId;
     private UUID challengeId;
     private LocalDateTime createdAt;
+
+    //detalle de reto completado
+    private String challengeName;
+    private Integer pointsEarned;
 }
