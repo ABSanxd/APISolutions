@@ -1,7 +1,10 @@
 package com.api.modules.publication.model;
 
 import java.time.LocalDate;
+import java.util.HashSet; // <-- AÑADIR
+import java.util.List;
 import java.util.Map;
+import java.util.Set; // <-- AÑADIR
 import java.util.UUID;
 
 import org.hibernate.annotations.JdbcTypeCode;
@@ -20,6 +23,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable; // <-- AÑADIR
+import jakarta.persistence.ManyToMany; // <-- AÑADIR
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
@@ -47,8 +52,9 @@ public class Publication {
     @Column(name = "approx_age", nullable = false)
     private String approxAge;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
-    private String photo;
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb", nullable = false)
+    private List<String> photos;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
@@ -79,6 +85,17 @@ public class Publication {
     @Column(nullable = false)
     private Integer shared = 0;
 
-    @Column(nullable = false)
-    private Integer likes = 0;
+    // --- INICIO DE CAMBIOS ---
+    // @Column(nullable = false)
+    // private Integer likes = 0;  <-- ELIMINAMOS ESTA LÍNEA
+
+    // AÑADIMOS LA RELACIÓN DE QUIÉN DIO LIKE
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "publication_likes", // Nombre de la nueva tabla intermedia
+        joinColumns = @JoinColumn(name = "publication_id"),
+        inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private Set<User> likedBy = new HashSet<>();
+    // --- FIN DE CAMBIOS ---
 }

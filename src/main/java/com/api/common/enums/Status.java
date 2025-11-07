@@ -7,8 +7,11 @@ public enum Status {
     ACTIVO,
     INACTIVO,
     ELIMINADO,
-    EXPIRADO, //ads
+    EXPIRADO, // ads
     PAUSADO,
     ENVIADO,
     LEIDO,
+    ACEPTADO,
+    RECHAZADO,
+    CANCELADO
 }
