@@ -1,7 +1,7 @@
 package com.api.modules.publication.dto;
 
 import java.util.Map;
-import com.api.common.enums.species;
+import com.api.common.enums.Species;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -14,7 +14,7 @@ public class PublicationCreateDTO {
 	private String tempName;
 
 	@NotNull
-	private species species;
+	private Species species;
 
 	@NotBlank
 	private String approxAge;

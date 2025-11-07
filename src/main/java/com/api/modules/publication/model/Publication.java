@@ -8,7 +8,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import com.api.common.enums.Status;
-import com.api.common.enums.species;
+import com.api.common.enums.Species;
 import com.api.modules.user.model.User;
 
 import jakarta.persistence.Column;
@@ -42,7 +42,7 @@ public class Publication {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private species species;
+    private Species species;
 
     @Column(name = "approx_age", nullable = false)
     private String approxAge;
