@@ -43,14 +43,10 @@ public class Notification {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Status status;
+    private Status status; // Ej: PENDIENTE, ENVIADO, LEÍDA
 
     @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    private LocalDateTime sentAt;
-
     private String actionUrl;
-
-    private String icon;
 }

@@ -12,8 +12,7 @@ import lombok.Data;
 @Data
 public class NotificationCreateDTO {
 
-    @NotNull(message = "El usuario es obligatorio")
-    private UUID userId;
+    private UUID userId; // opcional si se obtiene del token
 
     @NotBlank(message = "El título es obligatorio")
     private String title;
@@ -28,5 +27,4 @@ public class NotificationCreateDTO {
     private NotificationChannel channel;
 
     private String actionUrl;
-    private String icon;
 }

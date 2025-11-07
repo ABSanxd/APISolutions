@@ -1,11 +1,13 @@
 package com.api.modules.notification.service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.api.common.enums.NotificationChannel;
+import com.api.common.enums.NotificationType;
 import com.api.common.enums.Status;
 import com.api.modules.notification.dto.NotificationCreateDTO;
 import com.api.modules.notification.dto.NotificationResponseDTO;
@@ -25,52 +27,63 @@ public class NotificationService {
     private final UserRepository userRepository;
     private final EmailService emailService;
 
-    // Crear y enviar notificación
-    public NotificationResponseDTO createNotification(NotificationCreateDTO dto) {
-        User user = userRepository.findById(dto.getUserId())
+    // Crear y enviar notificación (usado por controller o módulos)
+    @Transactional
+    public NotificationResponseDTO createNotification(NotificationCreateDTO dto, UUID currentUserId) {
+        UUID targetUserId = dto.getUserId() != null ? dto.getUserId() : currentUserId;
+
+        User user = userRepository.findById(targetUserId)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado para la notificación."));
 
         Notification notification = NotificationMapper.toEntity(dto, user);
-        notification.setCreatedAt(LocalDateTime.now());
-        notification.setStatus(Status.PENDIENTE);
-
         Notification saved = notificationRepository.save(notification);
 
-        // Enviar por correo si el canal lo requiere
-        switch (saved.getChannel()) {
-            case EMAIL -> emailService.sendNotificationEmail(saved);
-            case PUSH -> {} 
-            case INTERNAL -> {}
-            case BOTH -> emailService.sendNotificationEmail(saved);
+        // Enviar por canal
+        if (dto.getChannel() == NotificationChannel.EMAIL || dto.getChannel() == NotificationChannel.BOTH) {
+            emailService.sendNotificationEmail(saved);
         }
 
         saved.setStatus(Status.ENVIADO);
-        saved.setSentAt(LocalDateTime.now());
         notificationRepository.save(saved);
 
         return NotificationMapper.toResponseDTO(saved);
     }
 
-    // Listar todas las notificaciones
-    public List<NotificationResponseDTO> getAllNotifications() {
-        return notificationRepository.findAll()
+    // Método práctico para otros módulos
+    @Transactional
+    public void createNotificationForUser(UUID userId, String title, String message,
+                                          NotificationType type,
+                                          NotificationChannel channel,
+                                          String actionUrl) {
+        NotificationCreateDTO dto = new NotificationCreateDTO();
+        dto.setUserId(userId);
+        dto.setTitle(title);
+        dto.setMessage(message);
+        dto.setType(type);
+        dto.setChannel(channel);
+        dto.setActionUrl(actionUrl);
+        createNotification(dto, userId);
+    }
+
+    // Obtener notificaciones del usuario autenticado
+    public List<NotificationResponseDTO> getMyNotifications(UUID currentUserId) {
+        return notificationRepository.findByUserIdOrderByCreatedAtDesc(currentUserId)
                 .stream()
                 .map(NotificationMapper::toResponseDTO)
                 .toList();
     }
 
-    // Obtener por ID
-    public NotificationResponseDTO getNotificationById(UUID id) {
-        return notificationRepository.findById(id)
-                .map(NotificationMapper::toResponseDTO)
-                .orElseThrow(() -> new RuntimeException("Notificación no encontrada."));
-    }
+    // Marcar como leída
+    @Transactional
+    public void markAsRead(UUID notificationId, UUID userId) {
+        Notification notification = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new RuntimeException("Notificación no encontrada"));
 
-    // Eliminar una notificación
-    public void deleteNotification(UUID id) {
-        if (!notificationRepository.existsById(id)) {
-            throw new RuntimeException("Notificación no encontrada para eliminar.");
+        if (!notification.getUser().getId().equals(userId)) {
+            throw new RuntimeException("No tienes permiso para modificar esta notificación");
         }
-        notificationRepository.deleteById(id);
+
+        notification.setStatus(Status.LEIDO);
+        notificationRepository.save(notification);
     }
 }

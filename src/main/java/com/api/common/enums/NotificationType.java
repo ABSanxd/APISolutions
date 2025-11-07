@@ -4,5 +4,8 @@ public enum NotificationType {
     INFO,
     ALERTA,
     RECORDATORIO,
-    LOGRO
+    LOGRO,
+    ADOPCION_SOLICITUD,
+    ADOPCION_CONFIRMADA,
+    SISTEMA
 }

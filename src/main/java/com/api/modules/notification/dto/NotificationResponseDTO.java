@@ -18,7 +18,4 @@ public class NotificationResponseDTO {
     private NotificationChannel channel;
     private Status status;
     private LocalDateTime createdAt;
-    private LocalDateTime sentAt;
-    private String actionUrl;
-    private String icon;
 }

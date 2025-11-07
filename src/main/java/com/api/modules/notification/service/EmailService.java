@@ -59,4 +59,12 @@ public class EmailService {
         mensaje.setText(notification.getMessage());
         mailSender.send(mensaje);
     }
+
+    public void sendSimpleEmail(String to, String subject, String message) {
+        SimpleMailMessage mail = new SimpleMailMessage();
+        mail.setTo(to);
+        mail.setSubject(subject);
+        mail.setText(message);
+        mailSender.send(mail);
+    }
 }

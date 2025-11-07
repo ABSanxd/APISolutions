@@ -1,5 +1,6 @@
 package com.api.modules.notification.mapper;
 
+import com.api.common.enums.Status;
 import com.api.modules.notification.dto.NotificationCreateDTO;
 import com.api.modules.notification.dto.NotificationResponseDTO;
 import com.api.modules.notification.model.Notification;
@@ -8,29 +9,26 @@ import com.api.modules.user.model.User;
 public class NotificationMapper {
 
     public static Notification toEntity(NotificationCreateDTO dto, User user) {
-        Notification n = new Notification();
-        n.setUser(user);
-        n.setTitle(dto.getTitle());
-        n.setMessage(dto.getMessage());
-        n.setType(dto.getType());
-        n.setChannel(dto.getChannel());
-        n.setActionUrl(dto.getActionUrl());
-        n.setIcon(dto.getIcon());
-        return n;
+        Notification notification = new Notification();
+        notification.setTitle(dto.getTitle());
+        notification.setMessage(dto.getMessage());
+        notification.setType(dto.getType());
+        notification.setChannel(dto.getChannel());
+        notification.setStatus(Status.PENDIENTE);
+        notification.setActionUrl(dto.getActionUrl());
+        notification.setUser(user);
+        return notification;
     }
 
-    public static NotificationResponseDTO toResponseDTO(Notification n) {
+    public static NotificationResponseDTO toResponseDTO(Notification notification) {
         NotificationResponseDTO dto = new NotificationResponseDTO();
-        dto.setId(n.getId());
-        dto.setTitle(n.getTitle());
-        dto.setMessage(n.getMessage());
-        dto.setType(n.getType());
-        dto.setChannel(n.getChannel());
-        dto.setStatus(n.getStatus());
-        dto.setCreatedAt(n.getCreatedAt());
-        dto.setSentAt(n.getSentAt());
-        dto.setActionUrl(n.getActionUrl());
-        dto.setIcon(n.getIcon());
+        dto.setId(notification.getId());
+        dto.setTitle(notification.getTitle());
+        dto.setMessage(notification.getMessage());
+        dto.setType(notification.getType());
+        dto.setChannel(notification.getChannel());
+        dto.setStatus(notification.getStatus());
+        dto.setCreatedAt(notification.getCreatedAt());
         return dto;
     }
 }
