@@ -82,4 +82,25 @@ public class User {
     @OneToMany(mappedBy = "user")
     @ToString.Exclude 
     private List<Pet> pets;
+
+    // --- INICIO DE LA CORRECCIÓN ---
+    // Sobrescribimos equals() y hashCode() generados por Lombok
+    // para que JPA pueda comparar usuarios correctamente por su ID 
+    // en el Set<User> de la entidad Publication.
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        // Compara los usuarios basándote únicamente en el ID
+        return id != null && id.equals(user.id);
+    }
+
+    @Override
+    public int hashCode() {
+        // Usa solo el ID para generar el hashCode
+        return java.util.Objects.hash(id);
+    }
+    // --- FIN DE LA CORRECCIÓN ---
 }

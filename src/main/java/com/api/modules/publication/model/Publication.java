@@ -1,17 +1,17 @@
 package com.api.modules.publication.model;
 
 import java.time.LocalDate;
-import java.util.HashSet; // <-- AÑADIR
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set; // <-- AÑADIR
+import java.util.Set;
 import java.util.UUID;
 
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import com.api.common.enums.Status;
 import com.api.common.enums.Species;
+import com.api.common.enums.Status;
 import com.api.modules.user.model.User;
 
 import jakarta.persistence.Column;
@@ -23,13 +23,13 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable; // <-- AÑADIR
-import jakarta.persistence.ManyToMany; // <-- AÑADIR
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import lombok.Data;
+import lombok.Data; 
 
-@Data
+@Data 
 @Entity
 @Table(name = "publication")
 public class Publication {
@@ -82,13 +82,17 @@ public class Publication {
     @Column(nullable = false)
     private String district;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private Integer shared = 0;
 
-    // --- INICIO DE CAMBIOS ---
-    // @Column(nullable = false)
-    // private Integer likes = 0;  <-- ELIMINAMOS ESTA LÍNEA
-
+    // --- INICIO DEL CAMBIO ---
+    
+    // ELIMINA ESTA LÍNEA OBSOLETA:
+    // @Column(nullable = true) 
+    // private Integer likes;     
+    
+    // --- FIN DEL CAMBIO ---
+    
     // AÑADIMOS LA RELACIÓN DE QUIÉN DIO LIKE
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
@@ -97,5 +101,4 @@ public class Publication {
         inverseJoinColumns = @JoinColumn(name = "user_id")
     )
     private Set<User> likedBy = new HashSet<>();
-    // --- FIN DE CAMBIOS ---
 }
