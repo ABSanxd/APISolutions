@@ -43,7 +43,10 @@ public class Achievement {
     @Column(nullable = false)
     private AchievementType achievementType;
 
-    private Integer points;
+    private Integer points;//para el usuario
+    
+    @Column(nullable = false) 
+    private Boolean repeatable = false; 
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

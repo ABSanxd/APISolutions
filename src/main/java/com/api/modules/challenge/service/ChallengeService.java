@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-//este service contiene la logica central de gamificacion (reto completado, actualizacion de XP, verificacion de logros, etc)
+
 @Service
 @RequiredArgsConstructor
 public class ChallengeService {

@@ -22,5 +22,8 @@ public class AchievementCreateDTO {
 
     private Integer points; // Opcional (solo para logros de usuario)
 
+    @NotNull(message = "Es necesario especificar si el logro es único o repetible")
+    private Boolean repeatable;
+
     private Status status = Status.ACTIVO;
 }

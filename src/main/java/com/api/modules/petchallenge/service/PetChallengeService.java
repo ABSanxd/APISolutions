@@ -7,6 +7,8 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
+import com.api.common.enums.Status;
+import com.api.modules.achievement.service.AchievementValidationService;
 import com.api.modules.challenge.model.Challenge;
 import com.api.modules.challenge.service.ChallengeService;
 import com.api.modules.pet.model.Pet;
@@ -27,8 +29,7 @@ public class PetChallengeService {
     private final PetChallengeRepository petChallengeRepository;
     private final PetService petService;
     private final ChallengeService challengeService;
-
-    // private final AchievementService achievementService;
+    private final AchievementValidationService achievementValidationService;
 
     // Marcar reto como completado
     @Transactional
@@ -38,8 +39,9 @@ public class PetChallengeService {
 
         Challenge challenge = challengeService.findChallengeEntityById(dto.challengeId());
 
-        if (challenge.getStatus() != com.api.common.enums.Status.ACTIVO) {
-            throw new RuntimeException("El reto '" + challenge.getName() + "' no está activo y no puede ser completado.");
+        if (challenge.getStatus() != Status.ACTIVO) {
+            throw new RuntimeException(
+                    "El reto '" + challenge.getName() + "' no está activo y no puede ser completado.");
         }
 
         // Crear RetoMascota
@@ -55,8 +57,8 @@ public class PetChallengeService {
         // guardamos desde aqui para que le añada los XP
         petService.save(pet);
 
-        // DISPARAR EL HOOK DE LOGROS pendientee
-        /* achievementService.checkAchievements(pet, challenge); */
+        // DISPARAR validación de logros
+        achievementValidationService.checkAndGrantAchievements(pet, challenge);
 
         return PetChallengeMapper.toResponseDTO(savedPetChallenge);
     }

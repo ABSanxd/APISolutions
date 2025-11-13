@@ -10,7 +10,7 @@ import java.util.UUID;
 import com.api.common.enums.Status;
 
 
-//por aqui entraremos a la tabla challenges para consultar los retos disponibles
+
 public interface ChallengeRepository extends JpaRepository<Challenge, UUID> {
     List<Challenge> findByCategory(Category category);
 
