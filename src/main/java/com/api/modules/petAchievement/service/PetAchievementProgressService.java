@@ -1,8 +1,6 @@
 package com.api.modules.petAchievement.service;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -16,13 +14,13 @@ import com.api.common.enums.ValidationPeriod;
 import com.api.common.exception.ResourceNotFoundException;
 import com.api.modules.achievement.model.Achievement;
 import com.api.modules.achievement.repository.AchievementRepository;
+import com.api.modules.achievement.service.AchievementCalculationService;
 import com.api.modules.achievementRequirement.model.AchievementRequirement;
 import com.api.modules.achievementRequirement.repository.AchievementRequirementRepository;
 import com.api.modules.petAchievement.dto.AchievementProgressDTO;
 import com.api.modules.petAchievement.dto.RequirementProgressDTO;
 import com.api.modules.petAchievement.repository.PetAchievementRepository;
 import com.api.modules.pet.service.PetService;
-import com.api.modules.petchallenge.repository.PetChallengeRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,13 +32,11 @@ public class PetAchievementProgressService {
 
     private final AchievementRepository achievementRepository;
     private final AchievementRequirementRepository requirementRepository;
-    private final PetChallengeRepository petChallengeRepository;
     private final PetAchievementRepository petAchievementRepository;
     private final PetService petService;
+    private final AchievementCalculationService calculationService;
 
-    /**
-     * Obtener el progreso de un logro específico para una mascota
-     */
+    // Obtener el progreso de un logro específico para una mascota
     @Transactional(readOnly = true)
     public AchievementProgressDTO getAchievementProgress(UUID petId, UUID achievementId) {
 
@@ -66,8 +62,8 @@ public class PetAchievementProgressService {
 
         // Determinar el periodo
         ValidationPeriod period = requirements.get(0).getValidationPeriod();
-        LocalDate periodStart = calculatePeriodStart(period);
-        LocalDate periodEnd = calculatePeriodEnd(period);
+        LocalDate periodStart = calculationService.calculatePeriodStart(period);
+        LocalDate periodEnd = calculationService.calculatePeriodEnd(period);
 
         // Verificar si ya está completado
         boolean completed = petAchievementRepository
@@ -78,11 +74,13 @@ public class PetAchievementProgressService {
         List<RequirementProgressDTO> requirementProgress = new ArrayList<>();
 
         for (AchievementRequirement req : requirements) {
-            int currentCount = countChallengeCompletions(
+            int currentCount = calculationService.countChallengeCompletions(
                     petId,
                     req.getChallenge().getId(),
                     periodStart,
-                    periodEnd);
+                    periodEnd,
+                    achievement.getCreatedAt(),
+                    achievement.getCountFromCreation());
 
             RequirementProgressDTO reqDto = new RequirementProgressDTO(
                     req.getId(),
@@ -105,6 +103,8 @@ public class PetAchievementProgressService {
                 // achievement.getPoints(),
                 achievement.getRepeatable(),
                 completed,
+                achievement.getCountFromCreation(),
+
                 periodStart,
                 periodEnd,
                 period.toString(),
@@ -114,7 +114,7 @@ public class PetAchievementProgressService {
     // Obtener el progreso de TODOS los logros disponibles para una mascota
     @Transactional(readOnly = true)
     public List<AchievementProgressDTO> getAllAchievementsProgress(UUID petId) {
-        log.debug("Calculando progreso de todos los logros para mascota {}", petId);
+        log.info("Calculando progreso de todos los logros para mascota {}", petId);
 
         // Validar que la mascota exista
         petService.findById(petId);
@@ -138,37 +138,4 @@ public class PetAchievementProgressService {
         return progressList;
     }
 
-    // Cuenta cuántas veces una mascota completó un reto en un periodo
-    private int countChallengeCompletions(UUID petId, UUID challengeId,
-            LocalDate start, LocalDate end) {
-        if (start == null) {
-            // TOTAL - contar todos los registros históricos
-            return (int) petChallengeRepository.countByPetIdAndChallengeId(petId, challengeId);
-        } else {
-            // SEMANAL o MENSUAL - contar en el periodo
-            LocalDateTime startDateTime = start.atStartOfDay();
-            LocalDateTime endDateTime = end.atTime(23, 59, 59);
-
-            return (int) petChallengeRepository.countByPetIdAndChallengeIdAndCreatedAtBetween(
-                    petId, challengeId, startDateTime, endDateTime);
-        }
-    }
-
-    //Calcula el inicio del periodo según ValidationPeriod
-    private LocalDate calculatePeriodStart(ValidationPeriod period) {
-        return switch (period) {
-            case TOTAL -> null;
-            case SEMANAL -> LocalDate.now().with(DayOfWeek.MONDAY);
-            case MENSUAL -> LocalDate.now().withDayOfMonth(1);
-        };
-    }
-
-    //Calcula el fin del periodo según ValidationPeriod
-    private LocalDate calculatePeriodEnd(ValidationPeriod period) {
-        return switch (period) {
-            case TOTAL -> null;
-            case SEMANAL -> LocalDate.now().with(DayOfWeek.SUNDAY);
-            case MENSUAL -> LocalDate.now().withDayOfMonth(LocalDate.now().lengthOfMonth());
-        };
-    }
 }

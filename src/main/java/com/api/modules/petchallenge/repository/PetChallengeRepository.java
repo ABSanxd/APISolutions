@@ -32,5 +32,10 @@ public interface PetChallengeRepository extends JpaRepository<PetChallenge, UUID
                         UUID challengeId,
                         LocalDateTime start,
                         LocalDateTime end);
+        // Contar cuántas veces se completó un reto desde una fecha específica (desde la creaciuón del logro)
+        long countByPetIdAndChallengeIdAndCreatedAtAfter(
+                        UUID petId,
+                        UUID challengeId,
+                        LocalDateTime createdAfter);
 
 }

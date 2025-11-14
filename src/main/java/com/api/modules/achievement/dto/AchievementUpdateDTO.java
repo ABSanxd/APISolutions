@@ -15,4 +15,5 @@ public class AchievementUpdateDTO {
     private Integer points;
     private Boolean repeatable;
     private Status status;
+    private Boolean countFromCreation; // true = contar retos completados desde creación, false = histórico
 }

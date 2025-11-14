@@ -20,6 +20,7 @@ public class PetAchievementMapper {
             petAchievement.getAchievement().getAchievementType(),
             //petAchievement.getAchievement().getPoints(), no por ahora
             petAchievement.getAchievement().getRepeatable(),
+            petAchievement.getAchievement().getCountFromCreation(),
             petAchievement.getPeriodStart(),
             petAchievement.getPeriodEnd(),
             petAchievement.getStatus(),

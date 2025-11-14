@@ -13,6 +13,7 @@ public record AchievementProgressDTO(
     //Integer totalPoints, no puntos por ahora
     Boolean repeatable,
     Boolean completed,
+    Boolean countFromCreation,
     LocalDate periodStart,
     LocalDate periodEnd,
     String validationPeriod, // "SEMANAL", "MENSUAL", "TOTAL"

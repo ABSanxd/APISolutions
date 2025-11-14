@@ -43,14 +43,17 @@ public class Achievement {
     @Column(nullable = false)
     private AchievementType achievementType;
 
-    private Integer points;//para el usuario
-    
-    @Column(nullable = false) 
-    private Boolean repeatable = false; 
+    private Integer points;// para el usuario
+
+    @Column(nullable = false)
+    private Boolean repeatable = false;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status = Status.ACTIVO;
+
+    @Column(name = "count_from_creation", nullable = false)
+    private Boolean countFromCreation = true; // true = contar retos completados desde creación, false = histórico
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)

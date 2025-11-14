@@ -18,6 +18,7 @@ public record PetAchievementResponseDTO(
     AchievementType achievementType,
     //Integer achievementPoints, no puntos por ahora
     Boolean repeatable,
+    Boolean countFromCreation,
     LocalDate periodStart,
     LocalDate periodEnd,
     Status status,

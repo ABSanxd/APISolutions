@@ -20,10 +20,12 @@ public class AchievementCreateDTO {
     @NotNull(message = "El tipo de logro es obligatorio")
     private AchievementType achievementType;
 
-    private Integer points; // Opcional (solo para logros de usuario)
+    private Integer points; //(solo para logros de usuario)
 
     @NotNull(message = "Es necesario especificar si el logro es único o repetible")
     private Boolean repeatable;
 
     private Status status = Status.ACTIVO;
+
+    private Boolean countFromCreation = true; // true = contar retos completados desde creación, false = histórico
 }

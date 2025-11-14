@@ -1,6 +1,5 @@
 package com.api.modules.achievement.service;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,7 +19,6 @@ import com.api.modules.challenge.model.Challenge;
 import com.api.modules.pet.model.Pet;
 import com.api.modules.petAchievement.model.PetAchievement;
 import com.api.modules.petAchievement.repository.PetAchievementRepository;
-import com.api.modules.petchallenge.repository.PetChallengeRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,8 +29,8 @@ import lombok.extern.slf4j.Slf4j;
 public class AchievementValidationService {
 
     private final AchievementRequirementRepository requirementRepository;
-    private final PetChallengeRepository petChallengeRepository;
     private final PetAchievementRepository petAchievementRepository;
+    private final AchievementCalculationService calculationService;
 
     /**
      * Método principal que se llama desde PetChallengeService
@@ -85,8 +83,8 @@ public class AchievementValidationService {
         // Determinar el periodo según el primer requisito (todos deberían tener el
         // nmismo)
         ValidationPeriod period = requirements.get(0).getValidationPeriod();
-        LocalDate periodStart = calculatePeriodStart(period);
-        LocalDate periodEnd = calculatePeriodEnd(period);
+        LocalDate periodStart = calculationService.calculatePeriodStart(period);
+        LocalDate periodEnd = calculationService.calculatePeriodEnd(period);
 
         log.info("Periodo de validación: {} (desde {} hasta {})",
                 period, periodStart, periodEnd);
@@ -100,11 +98,13 @@ public class AchievementValidationService {
         // Validar cada requisito
         boolean allRequirementsMet = true;
         for (AchievementRequirement req : requirements) {
-            int completedCount = countChallengeCompletions(
+            int completedCount = calculationService.countChallengeCompletions(
                     pet.getId(),
                     req.getChallenge().getId(),
                     periodStart,
-                    periodEnd);
+                    periodEnd,
+                    achievement.getCreatedAt(),
+                    achievement.getCountFromCreation());
 
             log.info("   ➤ Requisito '{}': {}/{} completados",
                     req.getChallenge().getName(),
@@ -162,23 +162,9 @@ public class AchievementValidationService {
         return false;
     }
 
-    //Cuenta cuántas veces una mascota completó un reto en un periodo
-    private int countChallengeCompletions(UUID petId, UUID challengeId,
-            LocalDate start, LocalDate end) {
-        if (start == null) {
-            // TOTAL - contar todos los registros históricos
-            return (int) petChallengeRepository.countByPetIdAndChallengeId(petId, challengeId);
-        } else {
-            // SEMANAL o MENSUAL - contar en el periodo
-            LocalDateTime startDateTime = start.atStartOfDay();
-            LocalDateTime endDateTime = end.atTime(23, 59, 59);
+    
 
-            return (int) petChallengeRepository.countByPetIdAndChallengeIdAndCreatedAtBetween(
-                    petId, challengeId, startDateTime, endDateTime);
-        }
-    }
-
-    //Otorga el logro a la mascota
+    // Otorga el logro a la mascota
     private void grantAchievement(Pet pet, Achievement achievement,
             LocalDate periodStart, LocalDate periodEnd) {
         log.info("¡Mascota '{}' obtuvo el logro '{}'!", pet.getNombre(), achievement.getName());
@@ -212,7 +198,7 @@ public class AchievementValidationService {
          */
     }
 
-    //Actualiza o crea un registro de PetAchievement en progreso
+    // Actualiza o crea un registro de PetAchievement en progreso
     private void updateOrCreatePetAchievement(Pet pet, Achievement achievement,
             LocalDate periodStart, LocalDate periodEnd,
             Status status) {
@@ -238,25 +224,5 @@ public class AchievementValidationService {
         // Si ya existe, no hacemos nada (el progreso se calcula on-demand)
     }
 
-    /**
-     * Calcula el inicio del periodo según ValidationPeriod
-     */
-    private LocalDate calculatePeriodStart(ValidationPeriod period) {
-        return switch (period) {
-            case TOTAL -> null; // No hay periodo
-            case SEMANAL -> LocalDate.now().with(DayOfWeek.MONDAY);
-            case MENSUAL -> LocalDate.now().withDayOfMonth(1);
-        };
-    }
-
-    /**
-     * Calcula el fin del periodo según ValidationPeriod
-     */
-    private LocalDate calculatePeriodEnd(ValidationPeriod period) {
-        return switch (period) {
-            case TOTAL -> null; // No hay periodo
-            case SEMANAL -> LocalDate.now().with(DayOfWeek.SUNDAY);
-            case MENSUAL -> LocalDate.now().withDayOfMonth(LocalDate.now().lengthOfMonth());
-        };
-    }
+    
 }
