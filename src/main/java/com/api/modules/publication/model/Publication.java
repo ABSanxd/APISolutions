@@ -85,14 +85,9 @@ public class Publication {
     @Column(nullable = true)
     private Integer shared = 0;
 
-    // --- INICIO DEL CAMBIO ---
-    
-    // ELIMINA ESTA LÍNEA OBSOLETA:
     // @Column(nullable = true) 
     // private Integer likes;     
-    
-    // --- FIN DEL CAMBIO ---
-    
+        
     // AÑADIMOS LA RELACIÓN DE QUIÉN DIO LIKE
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(

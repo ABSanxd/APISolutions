@@ -11,7 +11,6 @@ import com.api.modules.user.model.User;
 public class PublicationMapper {
 
     public static Publication toEntity(PublicationCreateDTO dto, User user) {
-        // ... (sin cambios aquí) ...
         Publication p = new Publication();
         p.setTempName(dto.getTempName());
         p.setSpecies(dto.getSpecies());
@@ -24,7 +23,6 @@ public class PublicationMapper {
         p.setProvince(dto.getProvince());
         p.setDistrict(dto.getDistrict());
         p.setShared(0);
-        // p.setLikes(0); // <-- ELIMINADO
         return p;
     }
 
@@ -54,11 +52,6 @@ public class PublicationMapper {
             p.setDistrict(dto.getDistrict());
     }
 
-    // --- INICIO DE CAMBIOS ---
-
-    /**
-     * Método base para mapear.
-     */
     public static PublicationResponseDTO toResponseDTO(Publication p) {
         PublicationResponseDTO dto = new PublicationResponseDTO();
         dto.setId(p.getId());
@@ -88,7 +81,7 @@ public class PublicationMapper {
         
         // Calculamos los likes dinámicamente
         dto.setLikes(p.getLikedBy() != null ? p.getLikedBy().size() : 0);
-        dto.setLikedByMe(false); // Default
+        dto.setLikedByMe(false);
         
         return dto;
     }
@@ -108,5 +101,4 @@ public class PublicationMapper {
         }
         return dto;
     }
-    // --- FIN DE CAMBIOS ---
 }

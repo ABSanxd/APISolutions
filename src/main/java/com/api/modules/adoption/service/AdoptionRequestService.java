@@ -43,7 +43,6 @@ public class AdoptionRequestService {
         Publication publication = publicationRepository.findById(dto.getPublicationId())
                 .orElseThrow(() -> new RuntimeException("Publicación no encontrada"));
 
-        // ... (validaciones de negocio sin cambios) ...
         if (publication.getStatus() != Status.ACTIVO) {
             return ApiResponse.fail("No se puede solicitar una publicación que no está activa", 400);
         }
@@ -62,22 +61,19 @@ public class AdoptionRequestService {
         if (currentPetCount >= maxPetsLimit) {
             return ApiResponse.fail("Máximo de mascotas alcanzado. No puedes adoptar más.", 400);
         }
-        // ... (fin de validaciones) ...
 
         AdoptionRequest newRequest = new AdoptionRequest(applicant, publication);
         AdoptionRequest savedRequest = adoptionRequestRepository.save(newRequest);
 
-        // --- INICIO DE NOTIFICACIÓN (Trigger 1: Nueva Solicitud) ---
         // Notificar al DUEÑO de la publicación
         notificationService.createNotificationForUser(
                 publication.getUser().getId(), // ID del dueño
-                "¡" + publication.getTempName() + " tiene un pretendiente! 🐾", // <-- TÍTULO PERSONALIZADO
+                "¡" + publication.getTempName() + " tiene un pretendiente! 🐾",
                 "¡Hola " + publication.getUser().getName() + "! " + applicant.getName() + " está interesado en darle un hogar a " + publication.getTempName() + ". Revisa su solicitud en la pestaña 'Mis Solicitudes'.", // <-- MENSAJE PERSONALIZADO
                 NotificationType.ADOPCION_SOLICITUD,
                 NotificationChannel.BOTH, 
                 "/adopciones"
         );
-        // --- FIN DE NOTIFICACIÓN ---
 
         return ApiResponse.success(
                 AdoptionRequestMapper.toResponseDTO(savedRequest),
@@ -109,7 +105,6 @@ public class AdoptionRequestService {
         Publication publication = request.getPublication();
         User applicant = request.getApplicant(); 
 
-        // ... (validaciones de permisos sin cambios) ...
         switch (newStatus) {
             case ACEPTADO, RECHAZADO -> {
                 if (!publication.getUser().getId().equals(user.getId())) {
@@ -128,11 +123,10 @@ public class AdoptionRequestService {
         if (request.getStatus() != Status.PENDIENTE) {
             return ApiResponse.fail("Esta solicitud ya ha sido " + request.getStatus().toString().toLowerCase(), 400);
         }
-        // ... (fin de validaciones) ...
 
 
         if (newStatus == Status.ACEPTADO) {
-            // ... (Lógica de negocio para ACEPTAR) ...
+            // Lógica de negocio para ACEPTAR
             int maxPetsLimit = applicant.getMaxPets();
             long currentPetCount = petRepository.countByUserIdAndStatus(applicant.getId(), Status.ACTIVO);
             if (currentPetCount >= maxPetsLimit) {
@@ -152,37 +146,31 @@ public class AdoptionRequestService {
             publicationRepository.save(publication);
             request.setStatus(Status.ACEPTADO);
             rejectOtherPendingRequests(publication.getId(), request.getId());
-            // ... (fin de lógica de negocio) ...
 
-            // --- INICIO DE NOTIFICACIÓN (Trigger 2.1: Aceptada) ---
             notificationService.createNotificationForUser(
                     applicant.getId(), // ID del solicitante
-                    "¡Tu familia crece! 🐶❤️", // <-- TÍTULO PERSONALIZADO
+                    "¡Tu familia crece! 🐶❤️", 
                     "¡Hola " + applicant.getName() + ", felicidades! Tu solicitud para adoptar a " + publication.getTempName() + " fue aceptada. ¡Prepárate para empezar esta nueva aventura con tu nuevo amiguito! 🐾", // <-- MENSAJE PERSONALIZADO
                     NotificationType.ADOPCION_CONFIRMADA,
                     NotificationChannel.BOTH,
                     "/inicio"
             );
-            // --- FIN DE NOTIFICACIÓN ---
 
         } else if (newStatus == Status.RECHAZADO) {
             request.setStatus(newStatus);
 
-            // --- INICIO DE NOTIFICACIÓN (Trigger 2.2: Rechazada) ---
             notificationService.createNotificationForUser(
                     applicant.getId(), // ID del solicitante
-                    "Sobre tu solicitud por " + publication.getTempName() + "...", // <-- TÍTULO PERSONALIZADO
+                    "Sobre tu solicitud por " + publication.getTempName() + "...",
                     "Hola " + applicant.getName() + ". Lamentamos informarte que tu solicitud para adoptar a " + publication.getTempName() + " no fue aceptada esta vez. ¡No te desanimes! Sigue buscando, tu amiguito ideal te está esperando. 💖", // <-- MENSAJE PERSONALIZADO
                     NotificationType.ADOPCION_SOLICITUD,
                     NotificationChannel.BOTH,
                     "/adopciones"
             );
-            // --- FIN DE NOTIFICACIÓN ---
 
         } else if (newStatus == Status.CANCELADO) {
             request.setStatus(newStatus);
 
-            // --- INICIO DE NOTIFICACIÓN (Trigger 3: Cancelada) ---
             notificationService.createNotificationForUser(
                     publication.getUser().getId(), // ID del dueño
                     "Solicitud Cancelada",
@@ -191,7 +179,6 @@ public class AdoptionRequestService {
                     NotificationChannel.BOTH,
                     "/adopciones"
             );
-            // --- FIN DE NOTIFICACIÓN ---
         }
 
         AdoptionRequest savedRequest = adoptionRequestRepository.save(request);
@@ -199,7 +186,6 @@ public class AdoptionRequestService {
     }
 
     private void rejectOtherPendingRequests(UUID publicationId, UUID acceptedRequestId) {
-        // ... (sin cambios)
         List<AdoptionRequest> otherRequests = adoptionRequestRepository.findByPublicationIdAndStatusAndIdNot(
                 publicationId,
                 Status.PENDIENTE,
@@ -214,7 +200,6 @@ public class AdoptionRequestService {
     }
 
     private Integer parseApproxAge(String approxAge) {
-        // ... (sin cambios)
         if (approxAge == null || approxAge.isBlank()) {
             return 0;
         }
@@ -235,7 +220,6 @@ public class AdoptionRequestService {
     }
 
     private LocalDate calculateBirthDateFromApproxAge(String approxAge) {
-        // ... (sin cambios)
         int years = parseApproxAge(approxAge);
         if (approxAge != null && approxAge.toLowerCase().contains("mes")) {
             Matcher matcher = Pattern.compile("(\\d+)").matcher(approxAge);

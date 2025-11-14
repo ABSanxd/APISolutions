@@ -13,11 +13,7 @@ public class PublicationUpdateDTO {
 	private String tempName;
 	private Species species;
 	private String approxAge;
-    
-    // --- CAMBIO AQUÍ ---
 	private List<String> photos;
-    // --- FIN DEL CAMBIO ---
-
 	private String description;
 	private Map<String, Object> contact;
 	private Status status;

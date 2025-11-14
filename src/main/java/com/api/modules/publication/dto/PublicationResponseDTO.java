@@ -33,9 +33,7 @@ public class PublicationResponseDTO {
 	private Integer shared;
 	private Integer likes; // <-- ESTE SE QUEDA (se calculará)
 
-	// --- INICIO DE CAMBIOS ---
 	private boolean likedByMe; // <-- AÑADIR ESTE CAMPO
-	// --- FIN DE CAMBIOS ---
 
 	@Data
 	public static class UserDTO {

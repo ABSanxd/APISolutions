@@ -3,6 +3,7 @@ package com.api.modules.user.model;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import org.hibernate.annotations.UuidGenerator;
@@ -83,7 +84,6 @@ public class User {
     @ToString.Exclude 
     private List<Pet> pets;
 
-    // --- INICIO DE LA CORRECCIÓN ---
     // Sobrescribimos equals() y hashCode() generados por Lombok
     // para que JPA pueda comparar usuarios correctamente por su ID 
     // en el Set<User> de la entidad Publication.
@@ -100,7 +100,6 @@ public class User {
     @Override
     public int hashCode() {
         // Usa solo el ID para generar el hashCode
-        return java.util.Objects.hash(id);
+        return Objects.hash(id);
     }
-    // --- FIN DE LA CORRECCIÓN ---
 }
