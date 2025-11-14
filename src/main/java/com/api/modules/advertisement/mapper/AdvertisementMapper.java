@@ -9,6 +9,8 @@ import com.api.modules.advertisement.dto.AdvertisementCreateDTO;
 import com.api.modules.advertisement.dto.AdvertisementResponseDTO;
 import com.api.modules.advertisement.dto.AdvertisementUpdateDTO;
 import com.api.modules.advertisement.model.Advertisement;
+import com.api.modules.advertisement.model.ContactDetails;
+import com.api.modules.advertisement.model.SocialMedia;
 
 public class AdvertisementMapper {
 
@@ -27,6 +29,7 @@ public class AdvertisementMapper {
         dto.setContact(advertisement.getContact()); // Se copia el objeto completo
         dto.setStartDate(advertisement.getStartDate());
         dto.setEndDate(advertisement.getEndDate());
+        dto.setStatus(advertisement.getStatus());
         return dto;
     }
 
@@ -79,10 +82,55 @@ public class AdvertisementMapper {
             advertisement.setEndDate(dto.getEndDate());
         if (dto.getIsRenewable() != null)
             advertisement.setIsRenewable(dto.getIsRenewable());
-        if (dto.getContact() != null)
-            advertisement.setContact(dto.getContact());
+
         if (dto.getStatus() != null)
             advertisement.setStatus(dto.getStatus());
+        // para contact details
+        if (dto.getContact() != null) {
+            ContactDetails entityContact = advertisement.getContact();
+            if (entityContact == null) {
+                entityContact = new ContactDetails();
+                advertisement.setContact(entityContact); // Establecer el nuevo objeto en la entidad
+            }
+
+            // Actualizar campo por campo
+            ContactDetails dtoContact = dto.getContact();
+
+            if (dtoContact.getEmail() != null) {
+                entityContact.setEmail(dtoContact.getEmail());
+            }
+            if (dtoContact.getPhone() != null) {
+                entityContact.setPhone(dtoContact.getPhone());
+            }
+            if (dtoContact.getAddress() != null) {
+                entityContact.setAddress(dtoContact.getAddress());
+            }
+
+            // Manejar SocialMedia de ContactDetails
+            if (dtoContact.getSocialMedia() != null) {
+                SocialMedia entitySocialMedia = entityContact.getSocialMedia();
+                if (entitySocialMedia == null) {
+                    entitySocialMedia = new SocialMedia();
+                    entityContact.setSocialMedia(entitySocialMedia);
+                }
+
+                SocialMedia dtoSocialMedia = dtoContact.getSocialMedia();
+
+                // Actualizar SocialMedia campo por campo
+                if (dtoSocialMedia.getType() != null) {
+                    entitySocialMedia.setType(dtoSocialMedia.getType());
+                }
+                if (dtoSocialMedia.getUrl() != null) {
+                    entitySocialMedia.setUrl(dtoSocialMedia.getUrl());
+                }
+
+            } else if (dto.getContact().getSocialMedia() == null
+                    && advertisement.getContact() != null
+                    && advertisement.getContact().getSocialMedia() != null) {
+
+            }
+
+        }
 
         advertisement.setUpdatedAt(LocalDateTime.now());
     }

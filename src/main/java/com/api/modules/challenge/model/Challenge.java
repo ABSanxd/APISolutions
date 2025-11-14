@@ -14,7 +14,6 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.UuidGenerator;
 
-
 @Data
 @Entity
 @Table(name = "challenge")
@@ -33,7 +32,7 @@ public class Challenge {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Frequency frequency;
+    private Frequency frequency; //DIARIO, SEMANAL, MENSUAL se refiere a cada cuanto aparecerá para que la mascota lo cumpla, si es diario pues todos los dias aparecerá ese reto
 
     @Column(nullable = false)
     private Integer points;
@@ -56,7 +55,5 @@ public class Challenge {
     @UpdateTimestamp
     @Column(nullable = false)
     private LocalDateTime updatedAt;
-
-
 
 }

@@ -17,7 +17,9 @@ public class AchievementResponseDTO {
     private String phrase;
     private AchievementType achievementType;
     private Integer points;
+    private Boolean repeatable;
     private Status status;
+    private Boolean countFromCreation;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

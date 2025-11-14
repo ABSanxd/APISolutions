@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 import com.api.common.enums.PriorityAd;
+import com.api.common.enums.Status;
 import com.api.common.enums.ZoneAd;
 import com.api.modules.advertisement.model.ContactDetails;
 
@@ -21,4 +22,5 @@ public class AdvertisementResponseDTO {
     private ContactDetails contact;
     private LocalDate startDate;
     private LocalDate endDate;
+    private Status status;
 }
