@@ -44,7 +44,7 @@ public class petChallengeController {
     }
 
     // retos completados HOYY
-    @GetMapping("/today")
+    @GetMapping("/today") //orderna por fecha
     public ResponseEntity<ApiResponse<List<PetChallengeResponseDTO>>> getPetChallengesToday(
             @PathVariable UUID petId) {
 
@@ -53,7 +53,7 @@ public class petChallengeController {
     }
 
     // Retos completados esta semana
-    @GetMapping("/week")
+    @GetMapping("/week")//ordena por fecha
     public ResponseEntity<ApiResponse<List<PetChallengeResponseDTO>>> getPetChallengesThisWeek(
             @PathVariable UUID petId) {
 
