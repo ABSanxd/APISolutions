@@ -1,5 +1,6 @@
 package com.api.modules.petchallenge.service;
 
+import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -7,6 +8,7 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
+import com.api.common.enums.Frequency;
 import com.api.common.enums.Status;
 import com.api.modules.achievement.service.AchievementValidationService;
 import com.api.modules.challenge.model.Challenge;
@@ -44,6 +46,12 @@ public class PetChallengeService {
                     "El reto '" + challenge.getName() + "' no está activo y no puede ser completado.");
         }
 
+        if(alreadyCompletedInPeriod(petId, challenge)){
+            throw new IllegalStateException(
+                "Ya completaste el reto " + challenge.getName() +" " + getPeriodMessage(challenge.getFrequency()) + "." 
+            );
+        }
+
         // Crear RetoMascota
         PetChallenge petChallenge = new PetChallenge();
         petChallenge.setPet(pet);
@@ -61,6 +69,42 @@ public class PetChallengeService {
         achievementValidationService.checkAndGrantAchievements(pet, challenge);
 
         return PetChallengeMapper.toResponseDTO(savedPetChallenge);
+    }
+
+    private boolean alreadyCompletedInPeriod(UUID petId, Challenge challenge){
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime periodStart;
+
+        switch (challenge.getFrequency()) {
+            case DIARIO:
+                periodStart = now.truncatedTo(ChronoUnit.DAYS);
+                break;
+                
+            case SEMANAL:
+                periodStart = now.with(DayOfWeek.MONDAY).truncatedTo(ChronoUnit.DAYS);
+                break;
+                
+            case MENSUAL:
+                periodStart = now.withDayOfMonth(1).truncatedTo(ChronoUnit.DAYS);
+                break;
+                
+            default:
+                return false;
+        }
+
+        return petChallengeRepository.existsByPetIdAndChallengeIdAndCreatedAtAfter(
+                petId,
+                challenge.getId(),
+                periodStart
+        );
+    }
+
+    private String getPeriodMessage(Frequency frequency) {
+        return switch (frequency) {
+            case DIARIO -> "hoy";
+            case SEMANAL -> "esta semana";
+            case MENSUAL -> "este mes";
+        };
     }
 
     // CONSULTAS
