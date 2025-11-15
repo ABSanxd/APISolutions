@@ -23,4 +23,6 @@ public class ApiApplication extends SpringBootServletInitializer {
 
         SpringApplication.run(ApiApplication.class, args);
     }
+
+    
 }

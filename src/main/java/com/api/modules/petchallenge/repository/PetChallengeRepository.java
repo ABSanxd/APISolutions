@@ -38,4 +38,10 @@ public interface PetChallengeRepository extends JpaRepository<PetChallenge, UUID
                         UUID challengeId,
                         LocalDateTime createdAfter);
 
+        //Verificar si ya completó un reto en un periodo
+        boolean existsByPetIdAndChallengeIdAndCreatedAtAfter(
+        UUID petId,
+        UUID challengeId,
+        LocalDateTime createdAfter);
+
 }
