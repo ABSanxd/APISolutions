@@ -1,10 +1,14 @@
 package com.api.modules.notification.service;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import com.api.common.enums.NotificationChannel;
 import com.api.common.enums.NotificationType;
@@ -22,10 +26,35 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class NotificationService {
+    private static final Long TIMEOUT = 0L; // nunca expira
+    private final Map<UUID, SseEmitter> emitters = new ConcurrentHashMap<>();
 
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
     private final EmailService emailService;
+
+    public SseEmitter subscribe(UUID userId) {
+        SseEmitter emitter = new SseEmitter(TIMEOUT);
+
+        emitters.put(userId, emitter);
+
+        emitter.onCompletion(() -> emitters.remove(userId));
+        emitter.onTimeout(() -> emitters.remove(userId));
+        emitter.onError((e) -> emitters.remove(userId));
+
+        return emitter;
+    }
+
+    private void sendSseNotification(UUID userId, NotificationResponseDTO notif) {
+        SseEmitter emitter = emitters.get(userId);
+        if (emitter != null) {
+            try {
+                emitter.send(SseEmitter.event().data(notif));
+            } catch (IOException e) {
+                emitters.remove(userId);
+            }
+        }
+    }
 
     // Crear y enviar notificación (usado por controller o módulos)
     @Transactional
@@ -46,15 +75,20 @@ public class NotificationService {
         saved.setStatus(Status.ENVIADO);
         notificationRepository.save(saved);
 
-        return NotificationMapper.toResponseDTO(saved);
+        NotificationResponseDTO response = NotificationMapper.toResponseDTO(saved);
+
+        // Enviar notificación al cliente conectado vía SSE
+        sendSseNotification(user.getId(), response);
+
+        return response;
     }
 
     // Método práctico para otros módulos
     @Transactional
     public void createNotificationForUser(UUID userId, String title, String message,
-                                          NotificationType type,
-                                          NotificationChannel channel,
-                                          String actionUrl) {
+            NotificationType type,
+            NotificationChannel channel,
+            String actionUrl) {
         NotificationCreateDTO dto = new NotificationCreateDTO();
         dto.setUserId(userId);
         dto.setTitle(title);
