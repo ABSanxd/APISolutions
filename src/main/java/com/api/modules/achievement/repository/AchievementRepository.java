@@ -25,6 +25,8 @@ public interface AchievementRepository extends JpaRepository<Achievement, UUID>{
 
     // Buscar por nombre
     boolean existsByName(String name);
+
+     List<Achievement> findByStatusAndAchievementType(Status status, AchievementType achievementType);
 }
 
 
