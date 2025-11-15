@@ -38,8 +38,7 @@ public class AchievementCalculationService {
                 return (int) petChallengeRepository.countByPetIdAndChallengeIdAndCreatedAtAfter(
                         petId, challengeId, achievementCreatedAt);
             } else {
-                // Contar todos los retos históricos
-              
+                // Contar todos los retos históricos              
                 return (int) petChallengeRepository.countByPetIdAndChallengeId(petId, challengeId);
             }
         } else {
