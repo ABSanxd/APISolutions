@@ -18,4 +18,5 @@ public class NotificationResponseDTO {
     private NotificationChannel channel;
     private Status status;
     private LocalDateTime createdAt;
+      private String actionUrl; // JIJIJI FALTA ESTO QUE JUERRRTE
 }

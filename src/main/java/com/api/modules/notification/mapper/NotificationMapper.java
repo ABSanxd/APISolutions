@@ -29,6 +29,7 @@ public class NotificationMapper {
         dto.setChannel(notification.getChannel());
         dto.setStatus(notification.getStatus());
         dto.setCreatedAt(notification.getCreatedAt());
+        dto.setActionUrl(notification.getActionUrl()); 
         return dto;
     }
 }

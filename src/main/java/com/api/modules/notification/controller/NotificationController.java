@@ -1,8 +1,8 @@
 package com.api.modules.notification.controller;
 
-import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -41,10 +41,12 @@ public class NotificationController {
     }
 
     @GetMapping("/mine")
-    public ResponseEntity<ApiResponse<List<NotificationResponseDTO>>> getMyNotifications(
-            @AuthenticationPrincipal User user) {
+    public ResponseEntity<ApiResponse<Page<NotificationResponseDTO>>> getMyNotifications(
+            @AuthenticationPrincipal User user,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
 
-        List<NotificationResponseDTO> notifications = notificationService.getMyNotifications(user.getId());
+        Page<NotificationResponseDTO> notifications = notificationService.getMyNotifications(user.getId(), page, size);
         return ResponseEntity.ok(ApiResponse.success(notifications, "Notificaciones obtenidas correctamente"));
     }
 

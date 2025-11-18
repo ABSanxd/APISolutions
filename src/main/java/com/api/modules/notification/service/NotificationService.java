@@ -1,11 +1,13 @@
 package com.api.modules.notification.service;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -100,11 +102,12 @@ public class NotificationService {
     }
 
     // Obtener notificaciones del usuario autenticado
-    public List<NotificationResponseDTO> getMyNotifications(UUID currentUserId) {
-        return notificationRepository.findByUserIdOrderByCreatedAtDesc(currentUserId)
-                .stream()
-                .map(NotificationMapper::toResponseDTO)
-                .toList();
+    public Page<NotificationResponseDTO> getMyNotifications(UUID currentUserId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Notification> notificationsPage = notificationRepository.findByUserIdOrderByCreatedAtDesc(currentUserId,
+                pageable);
+
+        return notificationsPage.map(NotificationMapper::toResponseDTO);
     }
 
     // Marcar como leída
