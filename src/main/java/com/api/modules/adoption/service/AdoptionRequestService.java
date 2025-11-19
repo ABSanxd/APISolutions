@@ -24,6 +24,7 @@ import com.api.modules.pet.repository.PetRepository;
 import com.api.modules.publication.model.Publication;
 import com.api.modules.publication.repository.PublicationRepository;
 import com.api.modules.user.model.User;
+import com.api.modules.userAchievement.service.UserAchievementService;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,7 @@ public class AdoptionRequestService {
     private final PublicationRepository publicationRepository;
     private final PetRepository petRepository;
     private final NotificationService notificationService; // <-- INYECTADO
+    private final UserAchievementService userAchievementService;
 
     @Transactional
     public ApiResponse<AdoptionRequestResponseDTO> createRequest(User applicant, AdoptionRequestCreateDTO dto) {
@@ -69,11 +71,12 @@ public class AdoptionRequestService {
         notificationService.createNotificationForUser(
                 publication.getUser().getId(), // ID del dueño
                 "¡" + publication.getTempName() + " tiene un pretendiente! 🐾",
-                "¡Hola " + publication.getUser().getName() + "! " + applicant.getName() + " está interesado en darle un hogar a " + publication.getTempName() + ". Revisa su solicitud en la pestaña 'Mis Solicitudes'.", // <-- MENSAJE PERSONALIZADO
+                "¡Hola " + publication.getUser().getName() + "! " + applicant.getName()
+                        + " está interesado en darle un hogar a " + publication.getTempName()
+                        + ". Revisa su solicitud en la pestaña 'Mis Solicitudes'.", // <-- MENSAJE PERSONALIZADO
                 NotificationType.ADOPCION_SOLICITUD,
-                NotificationChannel.BOTH, 
-                "/adopciones"
-        );
+                NotificationChannel.BOTH,
+                "/adopciones");
 
         return ApiResponse.success(
                 AdoptionRequestMapper.toResponseDTO(savedRequest),
@@ -103,7 +106,7 @@ public class AdoptionRequestService {
                 .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
 
         Publication publication = request.getPublication();
-        User applicant = request.getApplicant(); 
+        User applicant = request.getApplicant();
 
         switch (newStatus) {
             case ACEPTADO, RECHAZADO -> {
@@ -124,13 +127,13 @@ public class AdoptionRequestService {
             return ApiResponse.fail("Esta solicitud ya ha sido " + request.getStatus().toString().toLowerCase(), 400);
         }
 
-
         if (newStatus == Status.ACEPTADO) {
             // Lógica de negocio para ACEPTAR
             int maxPetsLimit = applicant.getMaxPets();
             long currentPetCount = petRepository.countByUserIdAndStatus(applicant.getId(), Status.ACTIVO);
             if (currentPetCount >= maxPetsLimit) {
-                return ApiResponse.fail("El solicitante ha alcanzado su límite de mascotas (" + maxPetsLimit + ")", 400);
+                return ApiResponse.fail("El solicitante ha alcanzado su límite de mascotas (" + maxPetsLimit + ")",
+                        400);
             }
             Pet newPet = new Pet();
             newPet.setUser(applicant);
@@ -146,15 +149,24 @@ public class AdoptionRequestService {
             publicationRepository.save(publication);
             request.setStatus(Status.ACEPTADO);
             rejectOtherPendingRequests(publication.getId(), request.getId());
+            // OTORGAR LOGROS DE ADOPCIÓN
+            userAchievementService.grantAdoptionAchievements(
+                    applicant.getId(), // ID del adoptante
+                    publication.getUser().getId(), // ID del rescatista
+                    publication.getTempName() // Nombre de la mascota
+            );
 
             notificationService.createNotificationForUser(
                     applicant.getId(), // ID del solicitante
-                    "¡Tu familia crece! 🐶❤️", 
-                    "¡Hola " + applicant.getName() + ", felicidades! Tu solicitud para adoptar a " + publication.getTempName() + " fue aceptada. ¡Prepárate para empezar esta nueva aventura con tu nuevo amiguito! 🐾", // <-- MENSAJE PERSONALIZADO
+                    "¡Tu familia crece! 🐶❤️",
+                    "¡Hola " + applicant.getName() + ", felicidades! Tu solicitud para adoptar a "
+                            + publication.getTempName()
+                            + " fue aceptada. ¡Prepárate para empezar esta nueva aventura con tu nuevo amiguito! 🐾", // <--
+                                                                                                                      // MENSAJE
+                                                                                                                      // PERSONALIZADO
                     NotificationType.ADOPCION_CONFIRMADA,
                     NotificationChannel.BOTH,
-                    "/inicio"
-            );
+                    "/inicio");
 
         } else if (newStatus == Status.RECHAZADO) {
             request.setStatus(newStatus);
@@ -162,11 +174,14 @@ public class AdoptionRequestService {
             notificationService.createNotificationForUser(
                     applicant.getId(), // ID del solicitante
                     "Sobre tu solicitud por " + publication.getTempName() + "...",
-                    "Hola " + applicant.getName() + ". Lamentamos informarte que tu solicitud para adoptar a " + publication.getTempName() + " no fue aceptada esta vez. ¡No te desanimes! Sigue buscando, tu amiguito ideal te está esperando. 💖", // <-- MENSAJE PERSONALIZADO
+                    "Hola " + applicant.getName() + ". Lamentamos informarte que tu solicitud para adoptar a "
+                            + publication.getTempName()
+                            + " no fue aceptada esta vez. ¡No te desanimes! Sigue buscando, tu amiguito ideal te está esperando. 💖", // <--
+                                                                                                                                      // MENSAJE
+                                                                                                                                      // PERSONALIZADO
                     NotificationType.ADOPCION_SOLICITUD,
                     NotificationChannel.BOTH,
-                    "/adopciones"
-            );
+                    "/adopciones");
 
         } else if (newStatus == Status.CANCELADO) {
             request.setStatus(newStatus);
@@ -174,11 +189,12 @@ public class AdoptionRequestService {
             notificationService.createNotificationForUser(
                     publication.getUser().getId(), // ID del dueño
                     "Solicitud Cancelada",
-                    "¡Hola " + publication.getUser().getName() + "! " + applicant.getName() + " ha cancelado su solicitud para adoptar a " + publication.getTempName() + ". La publicación sigue activa.", // <-- MENSAJE PERSONALIZADO
+                    "¡Hola " + publication.getUser().getName() + "! " + applicant.getName()
+                            + " ha cancelado su solicitud para adoptar a " + publication.getTempName()
+                            + ". La publicación sigue activa.", // <-- MENSAJE PERSONALIZADO
                     NotificationType.INFO,
                     NotificationChannel.BOTH,
-                    "/adopciones"
-            );
+                    "/adopciones");
         }
 
         AdoptionRequest savedRequest = adoptionRequestRepository.save(request);

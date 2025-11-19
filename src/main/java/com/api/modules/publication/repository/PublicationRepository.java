@@ -9,6 +9,7 @@ import com.api.modules.publication.model.Publication;
 
 public interface PublicationRepository extends JpaRepository<Publication, UUID> {
     List<Publication> findByStatus(Status status);
+
     List<Publication> findByUserId(UUID userId);
 
     /**
@@ -17,4 +18,10 @@ public interface PublicationRepository extends JpaRepository<Publication, UUID> 
      * publicaciones en la lista de "disponibles" uwu).
      */
     List<Publication> findByStatusAndUser_IdNot(Status status, UUID userId);
+
+    /**
+     * Cuenta el número de publicaciones (rescates) de un usuario
+     * que han sido marcadas como ADOPTADO.
+     */
+    long countByUserIdAndStatus(UUID userId, Status status);
 }

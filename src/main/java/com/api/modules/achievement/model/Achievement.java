@@ -45,6 +45,8 @@ public class Achievement {
 
     private Integer points;// para el usuario
 
+    private Integer requiredCount; // Cantidad requerida para completar el logro
+
     @Column(nullable = false)
     private Boolean repeatable = false;
 

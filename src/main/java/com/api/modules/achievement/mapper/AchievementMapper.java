@@ -19,6 +19,7 @@ public class AchievementMapper {
         dto.setPhrase(achievement.getPhrase());
         dto.setAchievementType(achievement.getAchievementType());
         dto.setPoints(achievement.getPoints());
+        dto.setRequiredCount(achievement.getRequiredCount());
         dto.setRepeatable(achievement.getRepeatable());
         dto.setStatus(achievement.getStatus());
         dto.setCountFromCreation(achievement.getCountFromCreation());
@@ -40,6 +41,7 @@ public class AchievementMapper {
         achievement.setPhrase(dto.getPhrase());
         achievement.setAchievementType(dto.getAchievementType());
         achievement.setPoints(dto.getPoints());
+        achievement.setRequiredCount(dto.getRequiredCount());
         achievement.setRepeatable(dto.getRepeatable());
         achievement.setStatus(dto.getStatus());
         achievement.setCountFromCreation(dto.getCountFromCreation());
@@ -58,6 +60,8 @@ public class AchievementMapper {
             achievement.setAchievementType(dto.getAchievementType());
         if (dto.getPoints() != null)
             achievement.setPoints(dto.getPoints());
+        if (dto.getRequiredCount() != null)
+            achievement.setRequiredCount(dto.getRequiredCount());
         if (dto.getRepeatable() != null)
             achievement.setRepeatable(dto.getRepeatable());
 

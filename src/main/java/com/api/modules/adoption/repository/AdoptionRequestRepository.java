@@ -25,14 +25,18 @@ public interface AdoptionRequestRepository extends JpaRepository<AdoptionRequest
      * para una publicación específica (publicationId).
      * Evita que envíe 10 solicitudes por la misma mascota.
      */
-    boolean existsByApplicantIdAndPublicationIdAndStatus(UUID applicantId, UUID publicationId, Status status); // <--- USAMOS EL ENUM MODIFICADO
+    boolean existsByApplicantIdAndPublicationIdAndStatus(UUID applicantId, UUID publicationId, Status status); // <---
+                                                                                                               // USAMOS
+                                                                                                               // EL
+                                                                                                               // ENUM
+                                                                                                               // MODIFICADO
 
-    
     // --- Búsquedas para el Dueño de la Publicación ---
 
     /**
      * Busca las solicitudes que un usuario ha RECIBIDO en sus publicaciones.
      * (Para la pestaña "Mis Solicitudes" -> "Recibidas")
+     * 
      * @param ownerId El ID del Dueño de las publicaciones.
      */
     @Query("SELECT ar FROM AdoptionRequest ar WHERE ar.publication.user.id = :ownerId")
@@ -44,5 +48,9 @@ public interface AdoptionRequestRepository extends JpaRepository<AdoptionRequest
      * excluyendo la solicitud que estamos a punto de aceptar.
      * Esto es para rechazarlas automáticamente.
      */
-    List<AdoptionRequest> findByPublicationIdAndStatusAndIdNot(UUID publicationId, Status status, UUID acceptedRequestId);
+    List<AdoptionRequest> findByPublicationIdAndStatusAndIdNot(UUID publicationId, Status status,
+            UUID acceptedRequestId);
+
+    // cuenta numero de adopciones completadas por un usuario
+    long countByApplicantIdAndStatus(UUID applicantId, Status status);
 }
