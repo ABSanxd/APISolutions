@@ -33,8 +33,14 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/api/v1/advertisements/**").permitAll()
                         .requestMatchers("/api/v1/notifications/stream").permitAll()
-                        .requestMatchers("/api/v1/notifications/**").authenticated()
+                        .requestMatchers("/swagger-ui/**").permitAll()
+                        .requestMatchers("/v3/api-docs/**").permitAll()
+                        .requestMatchers("/swagger-ui.html").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
+
+                        .requestMatchers("/api/v1/notifications/**").authenticated()
+                        .requestMatchers("/api/v1/users/**").authenticated()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
