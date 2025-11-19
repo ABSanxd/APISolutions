@@ -85,10 +85,9 @@ public class Publication {
     @Column(nullable = true)
     private Integer shared = 0;
 
-    // @Column(nullable = true) 
-    // private Integer likes;     
+
         
-    // AÑADIMOS LA RELACIÓN DE QUIÉN DIO LIKE
+    // RELACIÓN DE QUIÉN DIO LIKE
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "publication_likes", // Nombre de la nueva tabla intermedia

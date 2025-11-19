@@ -1,6 +1,6 @@
 package com.api.modules.vaccine.dto;
 
-import java.time.LocalDate; // <-- CAMBIO 1: Importar LocalDate
+import java.time.LocalDate; 
 import java.util.List;
 import java.util.UUID;
 import com.api.common.enums.Status;
