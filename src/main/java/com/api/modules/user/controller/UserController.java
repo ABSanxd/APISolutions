@@ -20,14 +20,17 @@ import com.api.modules.user.dto.UserResponseDTO;
 import com.api.modules.user.dto.UserUpdateDTO;
 import com.api.modules.user.service.UserService;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
 
 // Recibe las peticiones HTTP (REST). Solo coordina. 
 // No hace lógica.
 @RestController
 @RequiredArgsConstructor // Singlenton Automático
 @RequestMapping("/api/v1/users")
+@SecurityRequirement(name = "Bearer Authentication")
 public class UserController {
     private final UserService userService;
 

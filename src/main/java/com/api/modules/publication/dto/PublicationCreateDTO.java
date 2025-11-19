@@ -22,11 +22,9 @@ public class PublicationCreateDTO {
 	@NotBlank
 	private String approxAge;
 
-    // --- CAMBIO AQUÍ ---
 	@NotNull
     @Size(min = 1, message = "Debe subir al menos una foto")
 	private List<String> photos;
-    // --- FIN DEL CAMBIO ---
 
 	@NotBlank
 	private String description;

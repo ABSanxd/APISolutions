@@ -29,7 +29,7 @@ public class PublicationService {
 	private final UserRepository userRepository;
 
 	public ApiResponse<PublicationResponseDTO> create(String userIdStr, PublicationCreateDTO dto) {
-		// ... (sin cambios) ...
+
 		UUID userUuid;
 		try {
 			userUuid = UUID.fromString(userIdStr);
@@ -56,12 +56,10 @@ public class PublicationService {
 
 		List<Publication> list = repository.findByStatusAndUser_IdNot(Status.ACTIVO, userUuid);
 		
-		// --- INICIO DE CAMBIOS ---
 		// Usamos el mapper que calcula 'likedByMe'
 		return ApiResponse.success(list.stream()
 				.map(p -> PublicationMapper.toResponseDTO(p, userUuid))
 				.collect(Collectors.toList()));
-		// --- FIN DE CAMBIOS ---
 	}
 
 	public ApiResponse<List<PublicationResponseDTO>> listAll() {
@@ -75,18 +73,14 @@ public class PublicationService {
 		try {
 			UUID userId = UUID.fromString(userIdStr);
 			List<Publication> list = repository.findByUserId(userId);
-			// --- INICIO DE CAMBIOS ---
 			// El usuario está viendo su propia lista, así que 'likedByMe' es relevante
 			return ApiResponse.success(list.stream()
 					.map(p -> PublicationMapper.toResponseDTO(p, userId))
 					.collect(Collectors.toList()));
-			// --- FIN DE CAMBIOS ---
 		} catch (Exception ex) {
 			return ApiResponse.fail("UserId inválido", 400);
 		}
 	}
-
-	// --- INICIO DE CAMBIOS ---
 	// AHORA REQUIERE EL ID DEL USUARIO ACTUAL para calcular 'likedByMe'
 	public ApiResponse<PublicationResponseDTO> getById(UUID id, UUID currentUserId) {
 		Optional<Publication> op = repository.findById(id);
@@ -96,10 +90,8 @@ public class PublicationService {
 		// Usamos el mapper que calcula 'likedByMe'
 		return ApiResponse.success(PublicationMapper.toResponseDTO(op.get(), currentUserId));
 	}
-	// --- FIN DE CAMBIOS ---
 
 	public ApiResponse<PublicationResponseDTO> update(UUID id, PublicationUpdateDTO dto) {
-		// ... (sin cambios) ...
 		Optional<Publication> op = repository.findById(id);
 		if (op.isEmpty())
 			return ApiResponse.fail("Publicacion no encontrada", 404);
@@ -112,7 +104,6 @@ public class PublicationService {
 	}
 
 	public ApiResponse<Object> delete(UUID id) {
-		// ... (sin cambios) ...
 		Optional<Publication> op = repository.findById(id);
 		if (op.isEmpty())
 			return ApiResponse.fail("Publicacion no encontrada", 404);
@@ -120,7 +111,6 @@ public class PublicationService {
 		return ApiResponse.success(null, "Eliminado");
 	}
 
-	// --- INICIO DE CAMBIOS ---
 	// LÓGICA DE LIKE/UNLIKE
 	@Transactional
 	public ApiResponse<PublicationResponseDTO> toggleLikePublication(UUID id, User user) {
@@ -146,7 +136,6 @@ public class PublicationService {
 
 	@Transactional
 	public ApiResponse<PublicationResponseDTO> sharePublication(UUID id) {
-		// ... (sin cambios, este método estaba bien) ...
 		Optional<Publication> op = repository.findById(id);
 		if (op.isEmpty())
 			return ApiResponse.fail("Publicacion no encontrada", 404);
@@ -156,5 +145,4 @@ public class PublicationService {
 		Publication saved = repository.save(p);
 		return ApiResponse.success(PublicationMapper.toResponseDTO(saved)); // <-- Se usa el mapper base
 	}
-	// --- FIN DE CAMBIOS ---
 }

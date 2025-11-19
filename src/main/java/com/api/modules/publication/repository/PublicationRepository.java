@@ -13,9 +13,9 @@ public interface PublicationRepository extends JpaRepository<Publication, UUID> 
     List<Publication> findByUserId(UUID userId);
 
     /**
-     * Busca publicaciones que tengan un estado específico (ej: ACTIVO)
-     * y que NO pertenezcan a un usuario específico (para que no vea sus propias
-     * publicaciones en la lista de "disponibles" uwu).
+      Busca publicaciones que tengan un estado específico (ej: ACTIVO)
+      y que NO pertenezcan a un usuario específico (para que no vea sus propias
+      publicaciones en la lista de "disponibles" uwu).
      */
     List<Publication> findByStatusAndUser_IdNot(Status status, UUID userId);
 

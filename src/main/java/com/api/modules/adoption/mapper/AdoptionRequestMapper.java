@@ -39,13 +39,11 @@ public class AdoptionRequestMapper {
             publicationDTO.setPublicationId(publication.getId());
             publicationDTO.setPetName(publication.getTempName());
             
-            // --- CAMBIO AQUÍ ---
+
             // Usamos la primera foto de la lista como portada
             if (publication.getPhotos() != null && !publication.getPhotos().isEmpty()) {
                 publicationDTO.setPetPhoto(publication.getPhotos().get(0));
             }
-            // --- FIN DEL CAMBIO ---
-
             if (owner != null) {
                 publicationDTO.setOwnerId(owner.getId());
                 publicationDTO.setOwnerName(owner.getName());

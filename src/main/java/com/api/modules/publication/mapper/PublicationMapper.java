@@ -27,7 +27,6 @@ public class PublicationMapper {
     }
 
     public static void updateEntity(Publication p, PublicationUpdateDTO dto) {
-        // ... (sin cambios aquí) ...
         if (dto.getTempName() != null)
             p.setTempName(dto.getTempName());
         if (dto.getSpecies() != null)
@@ -86,10 +85,9 @@ public class PublicationMapper {
         return dto;
     }
 
-    /**
-     * Sobrecarga de 'toResponseDTO' que sabe "quién" está mirando,
-     * para calcular el campo 'likedByMe'.
-     */
+    
+     //Sobrecarga de 'toResponseDTO' que sabe quién está mirando, para calcular el campo 'likedByMe'.
+     
     public static PublicationResponseDTO toResponseDTO(Publication p, UUID currentUserId) {
         PublicationResponseDTO dto = toResponseDTO(p); // Llama al método base
 

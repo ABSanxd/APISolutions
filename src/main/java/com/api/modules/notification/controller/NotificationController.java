@@ -18,20 +18,31 @@ import com.api.modules.notification.dto.NotificationResponseDTO;
 import com.api.modules.notification.service.NotificationService;
 import com.api.modules.user.model.User;
 
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
+
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/notifications")
+@Tag(name = "Notificaciones", description = "API para gestion de notificacion del sistema")
+@SecurityRequirement(name ="Bearer Authentication")
 public class NotificationController {
 
     private final NotificationService notificationService;
     private final JwtUtils jwtUtils;
 
+    @Operation(summary = "Crear nueva notificación")
+
     @PostMapping
     public ResponseEntity<ApiResponse<NotificationResponseDTO>> createNotification(
             @Valid @RequestBody NotificationCreateDTO dto,
+            @Parameter(hidden = true)
             @AuthenticationPrincipal User user) {
 
         NotificationResponseDTO created = notificationService.createNotification(dto, user.getId());
@@ -40,27 +51,34 @@ public class NotificationController {
                 .body(ApiResponse.success(created, "Notificación creada exitosamente"));
     }
 
+    @Operation(summary = "Obtener mis notificaciones")
+
     @GetMapping("/mine")
     public ResponseEntity<ApiResponse<Page<NotificationResponseDTO>>> getMyNotifications(
-            @AuthenticationPrincipal User user,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @Parameter(hidden = true) @AuthenticationPrincipal User user,
+            @Parameter(description = "Numero de pagina") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Elementos por pagina") @RequestParam(defaultValue = "10") int size) {
 
         Page<NotificationResponseDTO> notifications = notificationService.getMyNotifications(user.getId(), page, size);
         return ResponseEntity.ok(ApiResponse.success(notifications, "Notificaciones obtenidas correctamente"));
     }
 
+    @Operation(summary = "Marcar notificación como leída")
     @PutMapping("/{id}/read")
     public ResponseEntity<ApiResponse<Void>> markAsRead(
-            @PathVariable UUID id,
-            @AuthenticationPrincipal User user) {
+            @Parameter(description = "ID de la notificación")  @PathVariable UUID id,
+            @Parameter(hidden = true) @AuthenticationPrincipal User user) {
 
         notificationService.markAsRead(id, user.getId());
         return ResponseEntity.ok(ApiResponse.success(null, "Notificación marcada como leída"));
     }
 
+    @Operation(
+        summary = "Conectarse al stream de notificaciones en tiempo real"
+    )
+
     @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter stream(@RequestParam("token") String token) {
+    public SseEmitter stream( @Parameter(description = "Token JWT") @RequestParam("token") String token) {
 
         if (token == null || token.isEmpty() || !jwtUtils.validateToken(token)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token inválido");

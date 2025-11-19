@@ -37,7 +37,6 @@ public class PublicationController {
 	public ResponseEntity<ApiResponse<PublicationResponseDTO>> create(
 			@AuthenticationPrincipal User user, 
 			@Validated @RequestBody PublicationCreateDTO dto) {
-		// ... (sin cambios) ...
 		if (user == null) {
 			return ResponseEntity.status(401)
 					.body(ApiResponse.fail("Usuario no autenticado", 401));
@@ -56,7 +55,6 @@ public class PublicationController {
 	public ResponseEntity<ApiResponse<List<PublicationResponseDTO>>> list(
 			@AuthenticationPrincipal User user, 
 			@RequestParam(value = "view", defaultValue = "all") String view) {
-		// ... (sin cambios) ...
 		if (user == null) {
 			return ResponseEntity.status(401)
 					.body(ApiResponse.fail("Usuario no autenticado", 401));
@@ -73,9 +71,6 @@ public class PublicationController {
 				return ResponseEntity.ok(service.listAll());
 		}
 	}
-
-	// --- INICIO DE CAMBIOS ---
-	// AHORA REQUIERE AUTENTICACIÓN
 	@GetMapping("/{id}")
 	public ResponseEntity<ApiResponse<PublicationResponseDTO>> get(
 			@PathVariable UUID id,
@@ -86,39 +81,31 @@ public class PublicationController {
 		}
 		return ResponseEntity.ok(service.getById(id, user.getId())); // <-- AÑADIDO user.getId()
 	}
-	// --- FIN DE CAMBIOS ---
 
 	@PutMapping("/{id}")
 	public ResponseEntity<ApiResponse<PublicationResponseDTO>> update(
 			@PathVariable UUID id,
 			@RequestBody PublicationUpdateDTO dto) {
-		// ... (sin cambios) ...
 		return ResponseEntity.ok(service.update(id, dto));
 	}
 
 	@DeleteMapping("/{id}")
 	public ResponseEntity<ApiResponse<Object>> delete(@PathVariable UUID id) {
-		// ... (sin cambios) ...
 		return ResponseEntity.ok(service.delete(id));
 	}
-
-	// --- INICIO DE CAMBIOS ---
-	// AHORA REQUIERE AUTENTICACIÓN
 	@PatchMapping("/{id}/like")
 	public ResponseEntity<ApiResponse<PublicationResponseDTO>> like(
 			@PathVariable UUID id,
-			@AuthenticationPrincipal User user // <-- AÑADIDO
+			@AuthenticationPrincipal User user
 	) {
 		if (user == null) {
 			return ResponseEntity.status(401).body(ApiResponse.fail("Usuario no autenticado", 401));
 		}
 		return ResponseEntity.ok(service.toggleLikePublication(id, user)); // <-- Llama al nuevo método
 	}
-	// --- FIN DE CAMBIOS ---
 
 	@PatchMapping("/{id}/share")
 	public ResponseEntity<ApiResponse<PublicationResponseDTO>> share(@PathVariable UUID id) {
-		// ... (sin cambios) ...
 		return ResponseEntity.ok(service.sharePublication(id));
 	}
 }

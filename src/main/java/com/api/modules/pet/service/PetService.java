@@ -27,14 +27,14 @@ public class PetService {
     private final PetRepository petRepository;
     private final UserRepository userRepository;
 
-    // mascotas por usuario (Sin cambios, JPA lo maneja)
+    // mascotas por usuario
     public List<PetResponseDTO> getAllPetsByUser(UUID userId) {
         return petRepository.findByUserIdAndStatus(userId, Status.ACTIVO).stream()
                 .map(PetMapper::toResponseDTO)
                 .toList();
     }
 
-    // obtener mascota por id (Sin cambios, JPA lo maneja)
+    // obtener mascota por id 
     public PetResponseDTO getPetById(UUID id, UUID userId) {
         return petRepository.findByIdAndUserId(id, userId)
                 .map(PetMapper::toResponseDTO)
@@ -58,7 +58,7 @@ public class PetService {
         return PetMapper.toResponseDTO(savedPet);
     }
 
-    // Actualizar mascota existente (Sin cambios, JPA lo maneja)
+    // Actualizar mascota existente
     public PetResponseDTO updatePet(UUID id, PetUpdateDTO dto, UUID userId) {
         return petRepository.findByIdAndUserId(id, userId)
                 .map(pet -> {
@@ -71,7 +71,7 @@ public class PetService {
                 .orElseThrow(() -> new RuntimeException("Mascota no encontrada para actualizar"));
     }
 
-    // Eliminar mascota (Sin cambios, JPA lo maneja)
+    // Eliminar mascota
     public void deletePet(UUID id, UUID userId) {
         Pet pet = petRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new RuntimeException("Mascota no encontrada para eliminar"));
@@ -81,7 +81,6 @@ public class PetService {
         petRepository.save(pet);
     }
 
-    // (Sin cambios, JPA lo maneja)
     public long countActivePets(UUID userId) {
         return petRepository.countByUserIdAndStatus(userId, Status.ACTIVO);
     }

@@ -59,13 +59,13 @@ public class AchievementController {
         return ResponseEntity.ok(ApiResponse.success(achievement, "Logro obtenido correctamente"));
     }
 
-    // Actualizar logro
+    // r logro
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<AchievementResponseDTO>> updateAchievement(
             @PathVariable UUID id,
             @RequestBody AchievementUpdateDTO dto) {
         AchievementResponseDTO achievement = achievementService.updateAchievement(id, dto);
-        return ResponseEntity.ok(ApiResponse.success(achievement, "Logro actualizado correctamente"));
+        return ResponseEntity.ok(ApiResponse.success(achievement, "Logro do correctamente"));
     }
 
     // inactivar logro
