@@ -3,7 +3,6 @@ package com.api.modules.notification.controller;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
