@@ -10,8 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.api.common.enums.AchievementType;
-import com.api.common.enums.NotificationChannel;
-import com.api.common.enums.NotificationType;
 import com.api.common.enums.Status;
 import com.api.modules.achievement.model.Achievement;
 import com.api.modules.achievement.repository.AchievementRepository;
@@ -37,30 +35,33 @@ public class UserAchievementService {
     private final AchievementRepository achievementRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
-    private final AdoptionRequestRepository adoptionRequestRepository; // para contar adopciones
-    private final PublicationRepository publicationRepository; // para contar rescates
+    private final AdoptionRequestRepository adoptionRequestRepository;
+    private final PublicationRepository publicationRepository;
 
-    // ... (grantAdoptionAchievements sin cambios)
+    /**
+     * Otorgar logros de adopción
+     */
     @Transactional
     public void grantAdoptionAchievements(UUID adopterId, UUID rescuerId, String petName) {
         log.info("🏆 Otorgando logros de adopción - Adoptante: {}, Rescatista: {}", adopterId, rescuerId);
 
-        // 1. Otorgar logro al ADOPTANTE
+        // Otorgar logro al ADOPTANTE
         grantAchievementByType(adopterId, AchievementType.USUARIO_ADOPTANTE, petName);
 
-        // 2. Otorgar logro al RESCATISTA
+        // Otorgar logro al RESCATISTA
         grantAchievementByType(rescuerId, AchievementType.USUARIO_RESCATISTA, petName);
     }
 
     /**
-     * Otorgar logro por tipo (ADOPTANTE o RESCATISTA) - Implementación de lógica
-     * HÍBRIDA
+     * Otorgar logro por tipo - LÓGICA CORREGIDA
      */
     @Transactional
     public void grantAchievementByType(UUID userId, AchievementType type, String petName) {
 
-        // 1. Obtener el conteo actual de acciones completadas (Adopciones o Rescates)
+        // 1. Obtener el conteo REAL de adopciones completadas
         long countCompleted = getCompletedCount(userId, type);
+
+        log.info("📊 Usuario: {} - Tipo: {} - Adopciones completadas: {}", userId, type, countCompleted);
 
         // 2. Buscar todos los logros activos de este tipo
         List<Achievement> achievements = achievementRepository
@@ -74,39 +75,52 @@ public class UserAchievementService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        log.info("🏆 Analizando logros para {} - Conteo Actual: {}", user.getName(), countCompleted);
+        // 3. Separar logros en dos categorías
+        List<Achievement> specialAchievements = achievements.stream()
+                .filter(a -> !a.getRepeatable() && a.getRequiredCount() != null)
+                .collect(Collectors.toList());
 
-        // 3. Iterar y Otorgar/Actualizar
-        for (Achievement achievement : achievements) {
-            Integer requiredCount = achievement.getRequiredCount();
+        List<Achievement> standardAchievements = achievements.stream()
+                .filter(Achievement::getRepeatable)
+                .collect(Collectors.toList());
 
-            // Lógica para Logros Estándar/Repetibles (Medalla Rescatista)
-            if (achievement.getRepeatable()) {
-                // Asumimos que el logro repetible tiene requiredCount = 1 (o null)
-                // para ser otorgado en cada acción.
-                if (requiredCount == null || countCompleted >= requiredCount) {
+        log.info("🎯 Logros especiales encontrados: {}", specialAchievements.size());
+        log.info("🎖️ Logros estándar encontrados: {}", standardAchievements.size());
+
+        // 4. LÓGICA PRINCIPAL:
+
+        // A) Verificar si debe otorgar logro ESPECIAL (1°, 3°, 5°)
+        boolean grantedSpecialAchievement = false;
+        for (Achievement achievement : specialAchievements) {
+            if (achievement.getRequiredCount().equals((int) countCompleted)) {
+                log.info("✨ Otorgando logro ESPECIAL: {} (requiere: {})",
+                        achievement.getName(), achievement.getRequiredCount());
+                grantUniqueAchievementIfNew(user, achievement);
+                grantedSpecialAchievement = true;
+                break; // Solo un logro especial por vez
+            }
+        }
+
+        // B) Si NO es adopción especial (2°, 4°, 6°, etc), otorgar logro ESTÁNDAR
+        if (!grantedSpecialAchievement) {
+            // Solo otorgar logro estándar si NO es la primera vez
+            if (countCompleted > 1) {
+                for (Achievement achievement : standardAchievements) {
+                    log.info("🎖️ Otorgando/Actualizando logro ESTÁNDAR: {}", achievement.getName());
                     grantOrUpdateRepeatableAchievement(user, achievement, petName);
+                    break; // Solo un logro estándar (debería haber solo 1 por tipo)
                 }
-
-                // Lógica para Logros Progresivos/Especiales (Corazón de Oro, Familia Creciente)
             } else {
-                if (requiredCount != null && countCompleted == requiredCount) {
-                    // Solo otorgar si el conteo actual COINCIDE exactamente con el requisito
-                    // y solo si el logro aún no ha sido obtenido.
-                    grantUniqueAchievementIfNew(user, achievement);
-                }
+                log.info("ℹ️ Primera adopción, no se otorga logro estándar");
             }
         }
     }
 
     /**
-     * Otorga un logro único (no repetible) SÓLO si es la primera vez.
+     * Otorga un logro único (no repetible) SÓLO si es la primera vez
      */
     private void grantUniqueAchievementIfNew(User user, Achievement achievement) {
         if (userAchievementRepository.existsByUserIdAndAchievementId(user.getId(), achievement.getId())) {
-            // Este caso no debería pasar si la lógica de 'countCompleted == requiredCount'
-            // es perfecta,
-            // pero es un guardrail útil.
             log.info("ℹ️ Logro Único ya obtenido: {}", achievement.getName());
             return;
         }
@@ -120,71 +134,91 @@ public class UserAchievementService {
         user.setUserXp(user.getUserXp() + xpEarned);
         userRepository.save(user);
 
-        log.info("✅ Logro Progresivo Otorgado: {} a {} (+{} XP)",
+        log.info("✅ Logro ESPECIAL Otorgado: {} a {} (+{} XP)",
                 achievement.getName(), user.getName(), xpEarned);
 
-        // Notificar al usuario (Similar a tu lógica original)
-        notificationService.createNotificationForUser(
-                user.getId(),
-                "🏆 ¡Nuevo logro desbloqueado!",
-                String.format("¡Felicidades! Has obtenido el logro '%s'. %s (+%d XP)",
-                        achievement.getName(),
-                        achievement.getPhrase(),
-                        xpEarned),
-                NotificationType.LOGRO,
-                NotificationChannel.BOTH,
-                "/logros");
+        // Notificar al usuario
+        /*
+         * notificationService.createNotificationForUser(
+         * user.getId(),
+         * "🏆 ¡Nuevo logro desbloqueado!",
+         * String.format("¡Felicidades! Has obtenido el logro '%s'. %s (+%d XP)",
+         * achievement.getName(),
+         * achievement.getPhrase(),
+         * xpEarned),
+         * NotificationType.LOGRO,
+         * NotificationChannel.BOTH,
+         * "/logros");
+         */
     }
 
     /**
-     * Otorga un logro repetible. Logro estandard: incrementa el contador cada vez
-     * que se cumple la acción.
+     * Otorga un logro repetible (estándar)
      */
     private void grantOrUpdateRepeatableAchievement(User user, Achievement achievement, String context) {
         Optional<UserAchievement> existing = userAchievementRepository
                 .findByUserIdAndAchievementId(user.getId(), achievement.getId());
 
         if (existing.isPresent()) {
-            // Actualizar contador
+            // Ya tiene el logro, incrementar contador
             UserAchievement userAchievement = existing.get();
             userAchievement.setTimesCompleted(userAchievement.getTimesCompleted() + 1);
-            userAchievement.setCompletedAt(LocalDateTime.now()); // Actualiza la fecha de la última vez completada
+            userAchievement.setCompletedAt(LocalDateTime.now());
             userAchievementRepository.save(userAchievement);
 
-            log.info("🔄 Logro repetible incrementado: {} para usuario {} ({}x)",
+            log.info("🔄 Logro ESTÁNDAR incrementado: {} para usuario {} ({}x)",
                     achievement.getName(), user.getName(), userAchievement.getTimesCompleted());
 
-            // Notificación de progreso
-            // (La notificacion podría ser menos intrusiva que la de un logro Único)
+            // Notificación más sutil
+            /*
+             * notificationService.createNotificationForUser(
+             * user.getId(),
+             * "🎖️ ¡Progreso en logro!",
+             * String.format("Has completado '%s' por %da vez. ¡Sigue así!",
+             * achievement.getName(), userAchievement.getTimesCompleted()),
+             * NotificationType.LOGRO,
+             * NotificationChannel.BOTH,
+             * "/logros");
+             */
 
         } else {
-            // Primera vez que obtiene el logro repetible
+            // Primera vez que obtiene el logro estándar
             UserAchievement newUserAchievement = new UserAchievement(user, achievement);
             userAchievementRepository.save(newUserAchievement);
 
-            // Otorgar XP de primera vez para el logro repetible
+            // Otorgar XP de primera vez
             int xpEarned = achievement.getPoints() != null ? achievement.getPoints() : 0;
             user.setUserXp(user.getUserXp() + xpEarned);
             userRepository.save(user);
 
-            log.info("✅ Logro Repetible Otorgado por primera vez: {} a {} (+{} XP)",
+            log.info("✅ Logro ESTÁNDAR Otorgado por primera vez: {} a {} (+{} XP)",
                     achievement.getName(), user.getName(), xpEarned);
 
-            // Notificar de primera vez.
+            // Notificación
+            /*
+             * notificationService.createNotificationForUser(
+             * user.getId(),
+             * "🎖️ ¡Nuevo badge desbloqueado!",
+             * String.format("Has obtenido el badge '%s'. %s (+%d XP)",
+             * achievement.getName(),
+             * achievement.getPhrase(),
+             * xpEarned),
+             * NotificationType.LOGRO,
+             * NotificationChannel.BOTH,
+             * "/logros");
+             */
         }
     }
 
     /**
-     * Helper: Cuenta las acciones completadas según el tipo de logro.
+     * Cuenta las acciones completadas según el tipo de logro
      */
     private long getCompletedCount(UUID userId, AchievementType type) {
         if (type == AchievementType.USUARIO_ADOPTANTE) {
-            // Conteo: Número de solicitudes de adopción ACEPTADAS por el usuario
-            // (Adoptante)
+            // Contar solicitudes ACEPTADAS como adoptante
             return adoptionRequestRepository.countByApplicantIdAndStatus(userId, Status.ACEPTADO);
         } else if (type == AchievementType.USUARIO_RESCATISTA) {
-            // Conteo: Número de publicaciones que el usuario (rescatista) ha
-            // completado/adoptado.
+            // Contar publicaciones ADOPTADAS como rescatista
             return publicationRepository.countByUserIdAndStatus(userId, Status.ADOPTADO);
         }
         return 0;
@@ -200,10 +234,23 @@ public class UserAchievementService {
     }
 
     /**
+     * Obtener todos los logros de un usuario (devuelve entidades)
+     */
+    public List<UserAchievement> getUserAchievements(UUID userId) {
+        return userAchievementRepository.findByUserId(userId);
+    }
+
+    /**
      * Contar logros completados
      */
     public long countUserAchievements(UUID userId) {
         return userAchievementRepository.countByUserId(userId);
     }
 
+    /**
+     * Verificar si un usuario tiene un logro específico
+     */
+    public boolean hasAchievement(UUID userId, UUID achievementId) {
+        return userAchievementRepository.existsByUserIdAndAchievementId(userId, achievementId);
+    }
 }

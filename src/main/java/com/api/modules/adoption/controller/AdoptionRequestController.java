@@ -27,7 +27,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/v1/adoption-requests")
 @RequiredArgsConstructor
 public class AdoptionRequestController {
-    
+
     private final AdoptionRequestService adoptionRequestService;
 
     /**
@@ -37,14 +37,12 @@ public class AdoptionRequestController {
     @PostMapping
     public ResponseEntity<ApiResponse<AdoptionRequestResponseDTO>> createAdoptionRequest(
             @AuthenticationPrincipal User applicantUser,
-            @Valid @RequestBody AdoptionRequestCreateDTO dto
-    ) {
+            @Valid @RequestBody AdoptionRequestCreateDTO dto) {
         if (applicantUser == null) {
             return ResponseEntity.status(401)
-                .body(ApiResponse.fail("Usuario no autenticado", 401));
+                    .body(ApiResponse.fail("Usuario no autenticado", 401));
         }
-        ApiResponse<AdoptionRequestResponseDTO> response = 
-            adoptionRequestService.createRequest(applicantUser, dto);
+        ApiResponse<AdoptionRequestResponseDTO> response = adoptionRequestService.createRequest(applicantUser, dto);
 
         if ("fail".equals(response.getStatus())) {
             return ResponseEntity.badRequest().body(response);
@@ -60,8 +58,7 @@ public class AdoptionRequestController {
      */
     @GetMapping("/received")
     public ResponseEntity<ApiResponse<List<AdoptionRequestResponseDTO>>> getReceivedRequests(
-            @AuthenticationPrincipal User ownerUser
-    ) {
+            @AuthenticationPrincipal User ownerUser) {
         if (ownerUser == null) {
             return ResponseEntity.status(401).body(ApiResponse.fail("Usuario no autenticado", 401));
         }
@@ -74,8 +71,7 @@ public class AdoptionRequestController {
      */
     @GetMapping("/sent")
     public ResponseEntity<ApiResponse<List<AdoptionRequestResponseDTO>>> getSentRequests(
-            @AuthenticationPrincipal User applicantUser
-    ) {
+            @AuthenticationPrincipal User applicantUser) {
         if (applicantUser == null) {
             return ResponseEntity.status(401).body(ApiResponse.fail("Usuario no autenticado", 401));
         }
@@ -89,14 +85,13 @@ public class AdoptionRequestController {
     @PatchMapping("/{id}/accept")
     public ResponseEntity<ApiResponse<AdoptionRequestResponseDTO>> acceptRequest(
             @AuthenticationPrincipal User ownerUser,
-            @PathVariable UUID id
-    ) {
+            @PathVariable UUID id) {
         if (ownerUser == null) {
             return ResponseEntity.status(401).body(ApiResponse.fail("Usuario no autenticado", 401));
         }
-        ApiResponse<AdoptionRequestResponseDTO> response = 
-            adoptionRequestService.updateRequestStatus(id, Status.ACEPTADO, ownerUser);
-        
+        ApiResponse<AdoptionRequestResponseDTO> response = adoptionRequestService.updateRequestStatus(id,
+                Status.ACEPTADO, ownerUser);
+
         if ("fail".equals(response.getStatus())) {
             return ResponseEntity.status(response.getCode()).body(response);
         }
@@ -110,14 +105,13 @@ public class AdoptionRequestController {
     @PatchMapping("/{id}/reject")
     public ResponseEntity<ApiResponse<AdoptionRequestResponseDTO>> rejectRequest(
             @AuthenticationPrincipal User ownerUser,
-            @PathVariable UUID id
-    ) {
+            @PathVariable UUID id) {
         if (ownerUser == null) {
             return ResponseEntity.status(401).body(ApiResponse.fail("Usuario no autenticado", 401));
         }
-        ApiResponse<AdoptionRequestResponseDTO> response = 
-            adoptionRequestService.updateRequestStatus(id, Status.RECHAZADO, ownerUser);
-        
+        ApiResponse<AdoptionRequestResponseDTO> response = adoptionRequestService.updateRequestStatus(id,
+                Status.RECHAZADO, ownerUser);
+
         if ("fail".equals(response.getStatus())) {
             return ResponseEntity.status(response.getCode()).body(response);
         }
@@ -131,14 +125,13 @@ public class AdoptionRequestController {
     @PatchMapping("/{id}/cancel")
     public ResponseEntity<ApiResponse<AdoptionRequestResponseDTO>> cancelRequest(
             @AuthenticationPrincipal User applicantUser,
-            @PathVariable UUID id
-    ) {
+            @PathVariable UUID id) {
         if (applicantUser == null) {
             return ResponseEntity.status(401).body(ApiResponse.fail("Usuario no autenticado", 401));
         }
-        ApiResponse<AdoptionRequestResponseDTO> response = 
-            adoptionRequestService.updateRequestStatus(id, Status.CANCELADO, applicantUser);
-        
+        ApiResponse<AdoptionRequestResponseDTO> response = adoptionRequestService.updateRequestStatus(id,
+                Status.CANCELADO, applicantUser);
+
         if ("fail".equals(response.getStatus())) {
             return ResponseEntity.status(response.getCode()).body(response);
         }
