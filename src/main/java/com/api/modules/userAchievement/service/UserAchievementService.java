@@ -25,6 +25,7 @@ import com.api.modules.userAchievement.dto.UserAchievementResponseDTO;
 import com.api.modules.userAchievement.mapper.UserAchievementMapper;
 import com.api.modules.userAchievement.model.UserAchievement;
 import com.api.modules.userAchievement.repository.UserAchievementRepository;
+import com.api.common.enums.UserLevel;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +43,7 @@ public class UserAchievementService {
     private final PublicationRepository publicationRepository;
 
     // ------------------------------------------------------------
-    //     MÉTODO PRINCIPAL: OTORGAR LOGROS EN ADOPCIÓN
+    // MÉTODO PRINCIPAL: OTORGAR LOGROS EN ADOPCIÓN
     // ------------------------------------------------------------
 
     @Transactional
@@ -54,7 +55,7 @@ public class UserAchievementService {
     }
 
     // ------------------------------------------------------------
-    //     MÉTODO GENERAL PARA OTORGAR LOGROS SEGÚN EL TIPO
+    // MÉTODO GENERAL PARA OTORGAR LOGROS SEGÚN EL TIPO
     // ------------------------------------------------------------
 
     @Transactional
@@ -83,7 +84,7 @@ public class UserAchievementService {
                 .collect(Collectors.toList());
 
         // ------------------------------------------------------------
-        //     1. Intentar dar un logro ESPECIAL (1ra, 3ra adopción)
+        // 1. Intentar dar un logro ESPECIAL (1ra, 3ra adopción)
         // ------------------------------------------------------------
 
         for (Achievement achievement : specialAchievements) {
@@ -95,7 +96,7 @@ public class UserAchievementService {
         }
 
         // ------------------------------------------------------------
-        //     2. Si no era logro especial → dar logro estándar (2da, 4ta...)
+        // 2. Si no era logro especial → dar logro estándar (2da, 4ta...)
         // ------------------------------------------------------------
 
         if (countCompleted > 1 && !standardAchievements.isEmpty()) {
@@ -104,7 +105,7 @@ public class UserAchievementService {
     }
 
     // ------------------------------------------------------------
-    //     LOGRO ESPECIAL (solo una vez)
+    // LOGRO ESPECIAL (solo una vez)
     // ------------------------------------------------------------
 
     private void grantUniqueAchievementIfNew(User user, Achievement achievement) {
@@ -120,6 +121,7 @@ public class UserAchievementService {
         int xp = achievement.getPoints() != null ? achievement.getPoints() : 0;
         user.setUserXp(user.getUserXp() + xp);
         userRepository.save(user);
+        updateUserLevel(user);
 
         notifyAchievement(user, achievement, false, 1);
 
@@ -128,7 +130,7 @@ public class UserAchievementService {
     }
 
     // ------------------------------------------------------------
-    //     LOGRO ESTÁNDAR (repetible)
+    // LOGRO ESTÁNDAR (repetible)
     // ------------------------------------------------------------
 
     private void grantOrUpdateRepeatableAchievement(User user, Achievement achievement, String context) {
@@ -155,6 +157,7 @@ public class UserAchievementService {
             int xp = achievement.getPoints() != null ? achievement.getPoints() : 0;
             user.setUserXp(user.getUserXp() + xp);
             userRepository.save(user);
+            updateUserLevel(user);
 
             notifyAchievement(user, achievement, true, 1);
 
@@ -164,7 +167,7 @@ public class UserAchievementService {
     }
 
     // ------------------------------------------------------------
-    //     MÉTODO UNIFICADO DE NOTIFICACIONES
+    // MÉTODO UNIFICADO DE NOTIFICACIONES
     // ------------------------------------------------------------
 
     private void notifyAchievement(User user, Achievement achievement, boolean isRepeatable, int timesCompleted) {
@@ -177,22 +180,19 @@ public class UserAchievementService {
             message = String.format(
                     "¡Felicidades! Has obtenido el logro '%s'. %s",
                     achievement.getName(),
-                    achievement.getPhrase()
-            );
+                    achievement.getPhrase());
         } else if (timesCompleted == 1) {
             title = "¡Nuevo badge obtenido!";
             message = String.format(
                     "Has obtenido el badge '%s'. %s",
                     achievement.getName(),
-                    achievement.getPhrase()
-            );
+                    achievement.getPhrase());
         } else {
             title = "¡Progreso en logro!";
             message = String.format(
                     "Has completado '%s' por %dª vez. ¡Sigue así!",
                     achievement.getName(),
-                    timesCompleted
-            );
+                    timesCompleted);
         }
 
         notificationService.createNotificationForUser(
@@ -201,12 +201,11 @@ public class UserAchievementService {
                 message,
                 NotificationType.LOGRO,
                 NotificationChannel.BOTH,
-                "/logros"
-        );
+                "/logros");
     }
 
     // ------------------------------------------------------------
-    //     CONTADOR DE ACCIONES (según tipo de logro)
+    // CONTADOR DE ACCIONES (según tipo de logro)
     // ------------------------------------------------------------
 
     private long getCompletedCount(UUID userId, AchievementType type) {
@@ -222,7 +221,7 @@ public class UserAchievementService {
     }
 
     // ------------------------------------------------------------
-    //     CONSULTAS PÚBLICAS
+    // CONSULTAS PÚBLICAS
     // ------------------------------------------------------------
 
     public List<UserAchievementResponseDTO> getUserAchievementsDTO(UUID userId) {
@@ -241,5 +240,38 @@ public class UserAchievementService {
 
     public boolean hasAchievement(UUID userId, UUID achievementId) {
         return userAchievementRepository.existsByUserIdAndAchievementId(userId, achievementId);
+    }
+
+    private UserLevel calculateUserLevel(int xp) {
+        if (xp >= 3500)
+            return UserLevel.SUPER_PRO;
+        if (xp >= 2000)
+            return UserLevel.DIAMANTE;
+        if (xp >= 1000)
+            return UserLevel.ORO;
+        if (xp >= 500)
+            return UserLevel.PLATA;
+        return UserLevel.BRONCE;
+    }
+
+    private void updateUserLevel(User user) {
+        UserLevel newLevel = calculateUserLevel(user.getUserXp());
+
+        if (newLevel != user.getUserLevel()) {
+            log.info("USUARIO {} SUBIO DE NIVEL: {} -> {} ", user.getName(), user.getUserLevel(), newLevel);
+
+            user.setUserLevel(newLevel);
+            userRepository.save(user);
+
+            // Notificacion
+
+            notificationService.createNotificationForUser(
+                    user.getId(),
+                    " ¡Has subido de nivel!",
+                    String.format("Ahora eres nivel %s ", newLevel),
+                    NotificationType.LOGRO,
+                    NotificationChannel.BOTH,
+                    "/perfil");
+        }
     }
 }
