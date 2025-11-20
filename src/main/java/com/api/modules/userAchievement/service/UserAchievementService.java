@@ -11,6 +11,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.api.common.enums.AchievementType;
 import com.api.common.enums.Status;
+import com.api.common.enums.NotificationChannel;
+import com.api.common.enums.NotificationType;
+
 import com.api.modules.achievement.model.Achievement;
 import com.api.modules.achievement.repository.AchievementRepository;
 import com.api.modules.adoption.repository.AdoptionRequestRepository;
@@ -22,6 +25,7 @@ import com.api.modules.userAchievement.dto.UserAchievementResponseDTO;
 import com.api.modules.userAchievement.mapper.UserAchievementMapper;
 import com.api.modules.userAchievement.model.UserAchievement;
 import com.api.modules.userAchievement.repository.UserAchievementRepository;
+import com.api.common.enums.UserLevel;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,44 +42,39 @@ public class UserAchievementService {
     private final AdoptionRequestRepository adoptionRequestRepository;
     private final PublicationRepository publicationRepository;
 
-    /**
-     * Otorgar logros de adopción
-     */
+    // ------------------------------------------------------------
+    // MÉTODO PRINCIPAL: OTORGAR LOGROS EN ADOPCIÓN
+    // ------------------------------------------------------------
+
     @Transactional
     public void grantAdoptionAchievements(UUID adopterId, UUID rescuerId, String petName) {
         log.info("🏆 Otorgando logros de adopción - Adoptante: {}, Rescatista: {}", adopterId, rescuerId);
 
-        // Otorgar logro al ADOPTANTE
         grantAchievementByType(adopterId, AchievementType.USUARIO_ADOPTANTE, petName);
-
-        // Otorgar logro al RESCATISTA
         grantAchievementByType(rescuerId, AchievementType.USUARIO_RESCATISTA, petName);
     }
 
-    /**
-     * Otorgar logro por tipo - LÓGICA CORREGIDA
-     */
+    // ------------------------------------------------------------
+    // MÉTODO GENERAL PARA OTORGAR LOGROS SEGÚN EL TIPO
+    // ------------------------------------------------------------
+
     @Transactional
     public void grantAchievementByType(UUID userId, AchievementType type, String petName) {
 
-        // 1. Obtener el conteo REAL de adopciones completadas
         long countCompleted = getCompletedCount(userId, type);
 
-        log.info("📊 Usuario: {} - Tipo: {} - Adopciones completadas: {}", userId, type, countCompleted);
+        log.info("Usuario: {} - Tipo: {} - Acciones completadas: {}", userId, type, countCompleted);
 
-        // 2. Buscar todos los logros activos de este tipo
-        List<Achievement> achievements = achievementRepository
-                .findByStatusAndAchievementType(Status.ACTIVO, type);
-
+        List<Achievement> achievements = achievementRepository.findByStatusAndAchievementType(Status.ACTIVO, type);
         if (achievements.isEmpty()) {
-            log.warn("⚠️ No hay logros activos del tipo {}", type);
+            log.warn("No hay logros activos del tipo {}", type);
             return;
         }
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        // 3. Separar logros en dos categorías
+        // Separar logros
         List<Achievement> specialAchievements = achievements.stream()
                 .filter(a -> !a.getRepeatable() && a.getRequiredCount() != null)
                 .collect(Collectors.toList());
@@ -84,173 +83,195 @@ public class UserAchievementService {
                 .filter(Achievement::getRepeatable)
                 .collect(Collectors.toList());
 
-        log.info("🎯 Logros especiales encontrados: {}", specialAchievements.size());
-        log.info("🎖️ Logros estándar encontrados: {}", standardAchievements.size());
+        // ------------------------------------------------------------
+        // 1. Intentar dar un logro ESPECIAL (1ra, 3ra adopción)
+        // ------------------------------------------------------------
 
-        // 4. LÓGICA PRINCIPAL:
-
-        // A) Verificar si debe otorgar logro ESPECIAL (1°, 3°, 5°)
-        boolean grantedSpecialAchievement = false;
         for (Achievement achievement : specialAchievements) {
             if (achievement.getRequiredCount().equals((int) countCompleted)) {
-                log.info("✨ Otorgando logro ESPECIAL: {} (requiere: {})",
-                        achievement.getName(), achievement.getRequiredCount());
+                log.info("Otorgando logro ESPECIAL: {}", achievement.getName());
                 grantUniqueAchievementIfNew(user, achievement);
-                grantedSpecialAchievement = true;
-                break; // Solo un logro especial por vez
+                return; // No se deben dar dos logros a la vez → FIN
             }
         }
 
-        // B) Si NO es adopción especial (2°, 4°, 6°, etc), otorgar logro ESTÁNDAR
-        if (!grantedSpecialAchievement) {
-            // Solo otorgar logro estándar si NO es la primera vez
-            if (countCompleted > 1) {
-                for (Achievement achievement : standardAchievements) {
-                    log.info("🎖️ Otorgando/Actualizando logro ESTÁNDAR: {}", achievement.getName());
-                    grantOrUpdateRepeatableAchievement(user, achievement, petName);
-                    break; // Solo un logro estándar (debería haber solo 1 por tipo)
-                }
-            } else {
-                log.info("ℹ️ Primera adopción, no se otorga logro estándar");
-            }
+        // ------------------------------------------------------------
+        // 2. Si no era logro especial → dar logro estándar (2da, 4ta...)
+        // ------------------------------------------------------------
+
+        if (countCompleted > 1 && !standardAchievements.isEmpty()) {
+            grantOrUpdateRepeatableAchievement(user, standardAchievements.get(0), petName);
         }
     }
 
-    /**
-     * Otorga un logro único (no repetible) SÓLO si es la primera vez
-     */
+    // ------------------------------------------------------------
+    // LOGRO ESPECIAL (solo una vez)
+    // ------------------------------------------------------------
+
     private void grantUniqueAchievementIfNew(User user, Achievement achievement) {
+
         if (userAchievementRepository.existsByUserIdAndAchievementId(user.getId(), achievement.getId())) {
-            log.info("ℹ️ Logro Único ya obtenido: {}", achievement.getName());
+            log.info("ℹLogro ESPECIAL ya obtenido previamente: {}", achievement.getName());
             return;
         }
 
-        // Primera vez que obtiene el logro
         UserAchievement newUserAchievement = new UserAchievement(user, achievement);
         userAchievementRepository.save(newUserAchievement);
 
-        // Otorgar XP
-        int xpEarned = achievement.getPoints() != null ? achievement.getPoints() : 0;
-        user.setUserXp(user.getUserXp() + xpEarned);
+        int xp = achievement.getPoints() != null ? achievement.getPoints() : 0;
+        user.setUserXp(user.getUserXp() + xp);
         userRepository.save(user);
+        updateUserLevel(user);
 
-        log.info("✅ Logro ESPECIAL Otorgado: {} a {} (+{} XP)",
-                achievement.getName(), user.getName(), xpEarned);
+        notifyAchievement(user, achievement, false, 1);
 
-        // Notificar al usuario
-        /*
-         * notificationService.createNotificationForUser(
-         * user.getId(),
-         * "🏆 ¡Nuevo logro desbloqueado!",
-         * String.format("¡Felicidades! Has obtenido el logro '%s'. %s (+%d XP)",
-         * achievement.getName(),
-         * achievement.getPhrase(),
-         * xpEarned),
-         * NotificationType.LOGRO,
-         * NotificationChannel.BOTH,
-         * "/logros");
-         */
+        log.info("Logro ESPECIAL otorgado: {} a {} (+{} XP)",
+                achievement.getName(), user.getName(), xp);
     }
 
-    /**
-     * Otorga un logro repetible (estándar)
-     */
+    // ------------------------------------------------------------
+    // LOGRO ESTÁNDAR (repetible)
+    // ------------------------------------------------------------
+
     private void grantOrUpdateRepeatableAchievement(User user, Achievement achievement, String context) {
-        Optional<UserAchievement> existing = userAchievementRepository
-                .findByUserIdAndAchievementId(user.getId(), achievement.getId());
+
+        Optional<UserAchievement> existing = userAchievementRepository.findByUserIdAndAchievementId(
+                user.getId(), achievement.getId());
 
         if (existing.isPresent()) {
-            // Ya tiene el logro, incrementar contador
-            UserAchievement userAchievement = existing.get();
-            userAchievement.setTimesCompleted(userAchievement.getTimesCompleted() + 1);
-            userAchievement.setCompletedAt(LocalDateTime.now());
-            userAchievementRepository.save(userAchievement);
 
-            log.info("🔄 Logro ESTÁNDAR incrementado: {} para usuario {} ({}x)",
-                    achievement.getName(), user.getName(), userAchievement.getTimesCompleted());
+            UserAchievement ua = existing.get();
+            ua.setTimesCompleted(ua.getTimesCompleted() + 1);
+            ua.setCompletedAt(LocalDateTime.now());
+            userAchievementRepository.save(ua);
 
-            // Notificación más sutil
-            /*
-             * notificationService.createNotificationForUser(
-             * user.getId(),
-             * "🎖️ ¡Progreso en logro!",
-             * String.format("Has completado '%s' por %da vez. ¡Sigue así!",
-             * achievement.getName(), userAchievement.getTimesCompleted()),
-             * NotificationType.LOGRO,
-             * NotificationChannel.BOTH,
-             * "/logros");
-             */
+            notifyAchievement(user, achievement, true, ua.getTimesCompleted());
 
+            log.info("Logro ESTÁNDAR incrementado: {} ({}x)",
+                    achievement.getName(), ua.getTimesCompleted());
         } else {
-            // Primera vez que obtiene el logro estándar
-            UserAchievement newUserAchievement = new UserAchievement(user, achievement);
-            userAchievementRepository.save(newUserAchievement);
 
-            // Otorgar XP de primera vez
-            int xpEarned = achievement.getPoints() != null ? achievement.getPoints() : 0;
-            user.setUserXp(user.getUserXp() + xpEarned);
+            UserAchievement newUA = new UserAchievement(user, achievement);
+            userAchievementRepository.save(newUA);
+
+            int xp = achievement.getPoints() != null ? achievement.getPoints() : 0;
+            user.setUserXp(user.getUserXp() + xp);
             userRepository.save(user);
+            updateUserLevel(user);
 
-            log.info("✅ Logro ESTÁNDAR Otorgado por primera vez: {} a {} (+{} XP)",
-                    achievement.getName(), user.getName(), xpEarned);
+            notifyAchievement(user, achievement, true, 1);
 
-            // Notificación
-            /*
-             * notificationService.createNotificationForUser(
-             * user.getId(),
-             * "🎖️ ¡Nuevo badge desbloqueado!",
-             * String.format("Has obtenido el badge '%s'. %s (+%d XP)",
-             * achievement.getName(),
-             * achievement.getPhrase(),
-             * xpEarned),
-             * NotificationType.LOGRO,
-             * NotificationChannel.BOTH,
-             * "/logros");
-             */
+            log.info("Logro ESTÁNDAR otorgado por primera vez: {} (+{} XP)",
+                    achievement.getName(), xp);
         }
     }
 
-    /**
-     * Cuenta las acciones completadas según el tipo de logro
-     */
+    // ------------------------------------------------------------
+    // MÉTODO UNIFICADO DE NOTIFICACIONES
+    // ------------------------------------------------------------
+
+    private void notifyAchievement(User user, Achievement achievement, boolean isRepeatable, int timesCompleted) {
+
+        String title;
+        String message;
+
+        if (!isRepeatable) {
+            title = "¡Nuevo logro desbloqueado!";
+            message = String.format(
+                    "¡Felicidades! Has obtenido el logro '%s'. %s",
+                    achievement.getName(),
+                    achievement.getPhrase());
+        } else if (timesCompleted == 1) {
+            title = "¡Nuevo badge obtenido!";
+            message = String.format(
+                    "Has obtenido el badge '%s'. %s",
+                    achievement.getName(),
+                    achievement.getPhrase());
+        } else {
+            title = "¡Progreso en logro!";
+            message = String.format(
+                    "Has completado '%s' por %dª vez. ¡Sigue así!",
+                    achievement.getName(),
+                    timesCompleted);
+        }
+
+        notificationService.createNotificationForUser(
+                user.getId(),
+                title,
+                message,
+                NotificationType.LOGRO,
+                NotificationChannel.BOTH,
+                "/logros");
+    }
+
+    // ------------------------------------------------------------
+    // CONTADOR DE ACCIONES (según tipo de logro)
+    // ------------------------------------------------------------
+
     private long getCompletedCount(UUID userId, AchievementType type) {
+
         if (type == AchievementType.USUARIO_ADOPTANTE) {
-            // Contar solicitudes ACEPTADAS como adoptante
             return adoptionRequestRepository.countByApplicantIdAndStatus(userId, Status.ACEPTADO);
+
         } else if (type == AchievementType.USUARIO_RESCATISTA) {
-            // Contar publicaciones ADOPTADAS como rescatista
             return publicationRepository.countByUserIdAndStatus(userId, Status.ADOPTADO);
         }
+
         return 0;
     }
 
-    /**
-     * Obtener todos los logros de un usuario (devuelve DTOs)
-     */
+    // ------------------------------------------------------------
+    // CONSULTAS PÚBLICAS
+    // ------------------------------------------------------------
+
     public List<UserAchievementResponseDTO> getUserAchievementsDTO(UUID userId) {
         return userAchievementRepository.findByUserId(userId).stream()
                 .map(UserAchievementMapper::toResponseDTO)
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Obtener todos los logros de un usuario (devuelve entidades)
-     */
     public List<UserAchievement> getUserAchievements(UUID userId) {
         return userAchievementRepository.findByUserId(userId);
     }
 
-    /**
-     * Contar logros completados
-     */
     public long countUserAchievements(UUID userId) {
         return userAchievementRepository.countByUserId(userId);
     }
 
-    /**
-     * Verificar si un usuario tiene un logro específico
-     */
     public boolean hasAchievement(UUID userId, UUID achievementId) {
         return userAchievementRepository.existsByUserIdAndAchievementId(userId, achievementId);
+    }
+
+    private UserLevel calculateUserLevel(int xp) {
+        if (xp >= 3500)
+            return UserLevel.SUPER_PRO;
+        if (xp >= 2000)
+            return UserLevel.DIAMANTE;
+        if (xp >= 1000)
+            return UserLevel.ORO;
+        if (xp >= 500)
+            return UserLevel.PLATA;
+        return UserLevel.BRONCE;
+    }
+
+    private void updateUserLevel(User user) {
+        UserLevel newLevel = calculateUserLevel(user.getUserXp());
+
+        if (newLevel != user.getUserLevel()) {
+            log.info("USUARIO {} SUBIO DE NIVEL: {} -> {} ", user.getName(), user.getUserLevel(), newLevel);
+
+            user.setUserLevel(newLevel);
+            userRepository.save(user);
+
+            // Notificacion
+
+            notificationService.createNotificationForUser(
+                    user.getId(),
+                    " ¡Has subido de nivel!",
+                    String.format("Ahora eres nivel %s ", newLevel),
+                    NotificationType.LOGRO,
+                    NotificationChannel.BOTH,
+                    "/perfil");
+        }
     }
 }
