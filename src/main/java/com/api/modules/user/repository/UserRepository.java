@@ -17,4 +17,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findByEmail(String email);
 
     List<User> findByStatusAndCreatedAtBefore(Status status, LocalDateTime fecha);
+
+    List<User> findTop10ByOrderByUserXpDesc();
 }
