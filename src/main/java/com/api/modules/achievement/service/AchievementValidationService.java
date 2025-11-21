@@ -10,12 +10,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.api.common.enums.AchievementType;
+import com.api.common.enums.NotificationChannel;
+import com.api.common.enums.NotificationType;
 import com.api.common.enums.Status;
 import com.api.common.enums.ValidationPeriod;
 import com.api.modules.achievement.model.Achievement;
 import com.api.modules.achievementRequirement.model.AchievementRequirement;
 import com.api.modules.achievementRequirement.repository.AchievementRequirementRepository;
 import com.api.modules.challenge.model.Challenge;
+import com.api.modules.notification.service.NotificationService;
 import com.api.modules.pet.model.Pet;
 import com.api.modules.petAchievement.model.PetAchievement;
 import com.api.modules.petAchievement.repository.PetAchievementRepository;
@@ -31,6 +34,7 @@ public class AchievementValidationService {
     private final AchievementRequirementRepository requirementRepository;
     private final PetAchievementRepository petAchievementRepository;
     private final AchievementCalculationService calculationService;
+    private final NotificationService notificationService;
 
     /**
      * Método principal que se llama desde PetChallengeService
@@ -162,8 +166,6 @@ public class AchievementValidationService {
         return false;
     }
 
-    
-
     // Otorga el logro a la mascota
     private void grantAchievement(Pet pet, Achievement achievement,
             LocalDate periodStart, LocalDate periodEnd) {
@@ -192,10 +194,14 @@ public class AchievementValidationService {
 
         petAchievementRepository.save(petAchievement);
 
-        /*
-         * Aqui se podría disparar una notificación
-         * notificationService.notifyAchievementUnlocked(pet, achievement);
-         */
+        notificationService.createNotificationForUser(
+                pet.getUser().getId(),
+                "¡Has obtenido un nuevo logro!",
+                String.format("¡Tu mascota '%s' ha obtenido el logro '%s'! ¡Felicidades!",
+                        pet.getNombre(), achievement.getName()),
+                NotificationType.LOGRO,
+                NotificationChannel.BOTH,
+                "/logros");
     }
 
     // Actualiza o crea un registro de PetAchievement en progreso
@@ -224,5 +230,4 @@ public class AchievementValidationService {
         // Si ya existe, no hacemos nada (el progreso se calcula on-demand)
     }
 
-    
 }

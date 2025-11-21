@@ -10,10 +10,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.api.common.enums.AchievementType;
-import com.api.common.enums.Status;
 import com.api.common.enums.NotificationChannel;
 import com.api.common.enums.NotificationType;
-
+import com.api.common.enums.Status;
+import com.api.common.enums.UserLevel;
 import com.api.modules.achievement.model.Achievement;
 import com.api.modules.achievement.repository.AchievementRepository;
 import com.api.modules.adoption.repository.AdoptionRequestRepository;
@@ -25,7 +25,6 @@ import com.api.modules.userAchievement.dto.UserAchievementResponseDTO;
 import com.api.modules.userAchievement.mapper.UserAchievementMapper;
 import com.api.modules.userAchievement.model.UserAchievement;
 import com.api.modules.userAchievement.repository.UserAchievementRepository;
-import com.api.common.enums.UserLevel;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -84,19 +83,19 @@ public class UserAchievementService {
                 .collect(Collectors.toList());
 
         // ------------------------------------------------------------
-        // 1. Intentar dar un logro ESPECIAL (1ra, 3ra adopción)
+        // Intentar dar un logro ESPECIAL (1ra, 3ra adopción, 5ta adopción)
         // ------------------------------------------------------------
 
         for (Achievement achievement : specialAchievements) {
             if (achievement.getRequiredCount().equals((int) countCompleted)) {
                 log.info("Otorgando logro ESPECIAL: {}", achievement.getName());
                 grantUniqueAchievementIfNew(user, achievement);
-                return; // No se deben dar dos logros a la vez → FIN
+                return; // No se deben dar dos logros a la vez
             }
         }
 
         // ------------------------------------------------------------
-        // 2. Si no era logro especial → dar logro estándar (2da, 4ta...)
+        // Si no era logro especial → dar logro estándar (2da, 4ta...)
         // ------------------------------------------------------------
 
         if (countCompleted > 1 && !standardAchievements.isEmpty()) {
@@ -123,7 +122,7 @@ public class UserAchievementService {
         userRepository.save(user);
         updateUserLevel(user);
 
-        notifyAchievement(user, achievement, false, 1);
+        notifyAchievement(user, achievement, false, 1, achievement.getAchievementType());
 
         log.info("Logro ESPECIAL otorgado: {} a {} (+{} XP)",
                 achievement.getName(), user.getName(), xp);
@@ -145,7 +144,7 @@ public class UserAchievementService {
             ua.setCompletedAt(LocalDateTime.now());
             userAchievementRepository.save(ua);
 
-            notifyAchievement(user, achievement, true, ua.getTimesCompleted());
+            notifyAchievement(user, achievement, true, ua.getTimesCompleted(), achievement.getAchievementType());
 
             log.info("Logro ESTÁNDAR incrementado: {} ({}x)",
                     achievement.getName(), ua.getTimesCompleted());
@@ -159,7 +158,7 @@ public class UserAchievementService {
             userRepository.save(user);
             updateUserLevel(user);
 
-            notifyAchievement(user, achievement, true, 1);
+            notifyAchievement(user, achievement, true, 1, achievement.getAchievementType());
 
             log.info("Logro ESTÁNDAR otorgado por primera vez: {} (+{} XP)",
                     achievement.getName(), xp);
@@ -170,13 +169,16 @@ public class UserAchievementService {
     // MÉTODO UNIFICADO DE NOTIFICACIONES
     // ------------------------------------------------------------
 
-    private void notifyAchievement(User user, Achievement achievement, boolean isRepeatable, int timesCompleted) {
+    private void notifyAchievement(User user, Achievement achievement, boolean isRepeatable, int timesCompleted,
+            AchievementType type) {
 
         String title;
         String message;
 
+        String typeLabel = type == AchievementType.USUARIO_ADOPTANTE ? "(Adoptante)" : "(Rescatista)";
+
         if (!isRepeatable) {
-            title = "¡Nuevo logro desbloqueado!";
+            title = "¡Nuevo logro desbloqueado! " + typeLabel;
             message = String.format(
                     "¡Felicidades! Has obtenido el logro '%s'. %s",
                     achievement.getName(),
@@ -184,11 +186,12 @@ public class UserAchievementService {
         } else if (timesCompleted == 1) {
             title = "¡Nuevo badge obtenido!";
             message = String.format(
-                    "Has obtenido el badge '%s'. %s",
+                    "Has obtenido el badge '%s' %s. %s",
                     achievement.getName(),
+                    typeLabel,
                     achievement.getPhrase());
         } else {
-            title = "¡Progreso en logro!";
+            title = "¡Progreso en logro!" + typeLabel;
             message = String.format(
                     "Has completado '%s' por %dª vez. ¡Sigue así!",
                     achievement.getName(),
@@ -271,7 +274,7 @@ public class UserAchievementService {
                     String.format("Ahora eres nivel %s ", newLevel),
                     NotificationType.LOGRO,
                     NotificationChannel.BOTH,
-                    "/perfil");
+                    "/inicio");
         }
     }
 }
