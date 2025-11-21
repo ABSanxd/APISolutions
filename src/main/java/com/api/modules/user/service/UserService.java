@@ -109,4 +109,10 @@ public class UserService {
             System.out.println("Usuarios pendientes eliminados: " + pendientes.size());
         }
     }
+
+    public List<UserResponseDTO> getLeaderboard() {
+        return userRepository.findTop10ByOrderByUserXpDesc().stream()
+                .map(UserMapper::toResponseDTO)
+                .toList();
+    }
 }

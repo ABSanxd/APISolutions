@@ -69,4 +69,10 @@ public class UserController {
                 .status(HttpStatus.NO_CONTENT)
                 .body(ApiResponse.success(null, "Usuario eliminado correctamente"));
     }
+
+    @GetMapping("/leaderboard")
+    public ResponseEntity<ApiResponse<List<UserResponseDTO>>> getLeaderboard() {
+        List<UserResponseDTO> leaderboard = userService.getLeaderboard();
+        return ResponseEntity.ok(ApiResponse.success(leaderboard, "Top usuarios obtenido"));
+    }
 }
