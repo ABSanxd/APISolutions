@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import com.api.common.enums.species;
+import com.api.common.enums.Species;
 import com.api.common.enums.Status;
 
 import lombok.Data;
@@ -14,7 +14,7 @@ import lombok.Data;
 public class PublicationResponseDTO {
 	private UUID id;
 	private String tempName;
-	private species species;
+	private Species species;
 	private String approxAge;
 
 	private List<String> photos;

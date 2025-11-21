@@ -3,7 +3,7 @@ package com.api.modules.publication.dto;
 import java.util.List; // <--- AÑADIDO
 import java.util.Map;
 
-import com.api.common.enums.species;
+import com.api.common.enums.Species;
 import com.api.common.enums.Status;
 
 import lombok.Data;
@@ -11,7 +11,7 @@ import lombok.Data;
 @Data
 public class PublicationUpdateDTO {
 	private String tempName;
-	private species species;
+	private Species species;
 	private String approxAge;
 	private List<String> photos;
 	private String description;
