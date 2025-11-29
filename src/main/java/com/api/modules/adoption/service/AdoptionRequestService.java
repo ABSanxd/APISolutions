@@ -68,18 +68,16 @@ public class AdoptionRequestService {
         AdoptionRequest savedRequest = adoptionRequestRepository.save(newRequest);
 
         // Notificar al DUEÑO de la publicación
-        /*
-         * notificationService.createNotificationForUser(
-         * publication.getUser().getId(), // ID del dueño
-         * "¡" + publication.getTempName() + " tiene un pretendiente! 🐾",
-         * "¡Hola " + publication.getUser().getName() + "! " + applicant.getName()
-         * + " está interesado en darle un hogar a " + publication.getTempName()
-         * + ". Revisa su solicitud en la pestaña 'Mis Solicitudes'.", // <-- MENSAJE
-         * PERSONALIZADO
-         * NotificationType.ADOPCION_SOLICITUD,
-         * NotificationChannel.BOTH,
-         * "/adopciones");
-         */
+
+        notificationService.createNotificationForUser(
+                publication.getUser().getId(), // ID del dueño
+                "¡" + publication.getTempName() + " tiene un pretendiente! 🐾",
+                "¡Hola " + publication.getUser().getName() + "! " + applicant.getName()
+                        + " está interesado en darle un hogar a " + publication.getTempName()
+                        + ". Revisa su solicitud en la pestaña 'Mis Solicitudes'.", // <-- MENSAJE PERSONALIZADO
+                NotificationType.ADOPCION_SOLICITUD,
+                NotificationChannel.BOTH,
+                "/adopciones");
 
         return ApiResponse.success(
                 AdoptionRequestMapper.toResponseDTO(savedRequest),
@@ -158,23 +156,19 @@ public class AdoptionRequestService {
                     publication.getUser().getId(), // ID del rescatista
                     publication.getTempName() // Nombre de la mascota
             );
-            /*
-             * 
-             * notificationService.createNotificationForUser(
-             * applicant.getId(), // ID del solicitante
-             * "¡Tu familia crece! 🐶❤️",
-             * "¡Hola " + applicant.getName() +
-             * ", felicidades! Tu solicitud para adoptar a "
-             * + publication.getTempName()
-             * +
-             * " fue aceptada. ¡Prepárate para empezar esta nueva aventura con tu nuevo amiguito! 🐾"
-             * , // <--
-             * // MENSAJE
-             * // PERSONALIZADO
-             * NotificationType.ADOPCION_CONFIRMADA,
-             * NotificationChannel.BOTH,
-             * "/inicio");
-             */
+
+            notificationService.createNotificationForUser(
+                    applicant.getId(), // ID del solicitante
+                    "¡Tu familia crece! 🐶❤️",
+                    "¡Hola " + applicant.getName() +
+                            ", felicidades! Tu solicitud para adoptar a "
+                            + publication.getTempName()
+                            +
+                            " fue aceptada. ¡Prepárate para empezar esta nueva aventura con tu nuevo amiguito! 🐾",
+                    // MENSAJE PERSONALIZADO
+                    NotificationType.ADOPCION_CONFIRMADA,
+                    NotificationChannel.BOTH,
+                    "/inicio");
 
         } else if (newStatus == Status.RECHAZADO) {
             request.setStatus(newStatus);

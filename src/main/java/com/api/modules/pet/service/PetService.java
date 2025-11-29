@@ -6,9 +6,12 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
+import com.api.common.enums.NotificationChannel;
+import com.api.common.enums.NotificationType;
 import com.api.common.enums.PetLevel;
 import com.api.common.enums.Status;
 import com.api.common.exception.ResourceNotFoundException;
+import com.api.modules.notification.service.NotificationService;
 import com.api.modules.pet.dto.PetCreateDTO;
 import com.api.modules.pet.dto.PetResponseDTO;
 import com.api.modules.pet.dto.PetUpdateDTO;
@@ -26,6 +29,7 @@ public class PetService {
 
     private final PetRepository petRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     // mascotas por usuario
     public List<PetResponseDTO> getAllPetsByUser(UUID userId) {
@@ -34,7 +38,7 @@ public class PetService {
                 .toList();
     }
 
-    // obtener mascota por id 
+    // obtener mascota por id
     public PetResponseDTO getPetById(UUID id, UUID userId) {
         return petRepository.findByIdAndUserId(id, userId)
                 .map(PetMapper::toResponseDTO)
@@ -85,7 +89,8 @@ public class PetService {
         return petRepository.countByUserIdAndStatus(userId, Status.ACTIVO);
     }
 
-    /// ESTO SE USA EN EL CHALLENGE --- NO TOCAR (solo quienes manejan retos :,D) ////
+    /// ESTO SE USA EN EL CHALLENGE --- NO TOCAR (solo quienes manejan retos :,D)
+    /// ////
     // obtener Pet en su formato puro Entidad
     public Pet findById(UUID petId) {
         return petRepository.findById(petId)
@@ -112,7 +117,16 @@ public class PetService {
 
         if (newLevel != currentLevel) {
             pet.setNivel(newLevel);
-            // aqui se podria agregar lógica para dar una recompensa por subir de nivel ..
+            notificationService.createNotificationForUser(
+                    pet.getUser().getId(),
+                    "¡Tu mascota " + pet.getNombre() + " ha subido a nivel " + newLevel + "!",
+                    String.format(
+                            "¡Felicidades! %s ha alcanzado el nivel %s. Sigue cuidándola para desbloquear más niveles juntos.",
+                            pet.getNombre(), newLevel),
+                    NotificationType.LOGRO,
+                    NotificationChannel.BOTH,
+                    "/inicio");
+
         }
 
         // Retornar la mascota actualizada
