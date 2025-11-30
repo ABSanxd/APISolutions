@@ -5,7 +5,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import com.api.common.enums.PetLevel;
-import com.api.common.enums.Species;
+import com.api.common.enums.Especies;
 import com.api.common.enums.Status;
 import lombok.Data;
 
@@ -15,7 +15,7 @@ public class PetResponseDTO {
     private UUID id;
     private UUID userId;
     private String nombre;
-    private Species especie;
+    private Especies especie;
     private PetLevel nivel;
     private Integer petXp;
     private String breed;
