@@ -6,6 +6,7 @@ import java.util.Random;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import com.api.modules.notification.model.Notification;
 import com.api.modules.user.model.User;
 import com.api.modules.user.repository.UserRepository;
 
@@ -20,12 +21,11 @@ public class MotivationalNotificationService {
 
     // Lista de frases motivacionales 🐾
     private static final List<String> MOTIVATIONAL_MESSAGES = List.of(
-        "🐾 ¡Hoy es un gran día para cuidar de tu peludo amigo!",
-        "💪 No olvides tus retos del día, tu mascota confía en ti.",
-        "🌟 ¡Sigue así! Tu dedicación está marcando la diferencia.",
-        "🐶 ¡Un paseo más y tu mascota será la más feliz del mundo!",
-        "💚 Cada cuidado cuenta. ¡Tu mascota te lo agradecerá!"
-    );
+            "🐾 ¡Hoy es un gran día para cuidar de tu peludo amigo!",
+            "💪 No olvides tus retos del día, tu mascota confía en ti.",
+            "🌟 ¡Sigue así! Tu dedicación está marcando la diferencia.",
+            "🐶 ¡Un paseo más y tu mascota será la más feliz del mundo!",
+            "💚 Cada cuidado cuenta. ¡Tu mascota te lo agradecerá!");
 
     /**
      * Enviar notificación motivacional aleatoria a todos los usuarios activos.
@@ -39,28 +39,21 @@ public class MotivationalNotificationService {
             String message = MOTIVATIONAL_MESSAGES.get(random.nextInt(MOTIVATIONAL_MESSAGES.size()));
             String title = "Woof Informa 🐾";
 
-            // Solo por correo
-            emailService.sendSimpleEmail(user.getEmail(), title, message);
+            Notification notification = new Notification();
+            notification.setUser(user);
+            notification.setTitle(title);
+            notification.setMessage(message);
+            notification.setActionUrl("/inicio"); // aquí decides a dónde llevarlo
 
-            // Si deseas que también aparezcan en la app (opcional, comentado)
-            /*
-            notificationService.createNotificationForUser(
-                user.getId(),
-                title,
-                message,
-                NotificationType.INFO,
-                NotificationChannel.INTERNAL,
-                null
-            );
-            */
+            emailService.sendNotificationEmail(notification);
         }
     }
 
     /**
      * Scheduler automático:
      * Ejecuta el envío 2 veces al día:
-     *  - A las 09:00 a.m.
-     *  - A las 06:00 p.m.
+     * - A las 09:00 a.m.
+     * - A las 06:00 p.m.
      */
     @Scheduled(cron = "0 0 9,18 * * *", zone = "America/Lima")
     public void scheduledMotivationalNotifications() {

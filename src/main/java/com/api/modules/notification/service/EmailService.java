@@ -3,6 +3,7 @@ package com.api.modules.notification.service;
 import java.time.LocalDateTime;
 import java.util.Random;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,9 @@ public class EmailService {
 
     private final UserRepository userRepository;
     private final JavaMailSender mailSender;
+
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
 
     private void enviarCodigo(User user, CodePurpose purpose, String subject, String cuerpo) {
         String code = String.format("%06d", new Random().nextInt(999999));
@@ -53,10 +57,18 @@ public class EmailService {
     }
 
     public void sendNotificationEmail(Notification notification) {
+        String body = notification.getMessage();
+
+        if (notification.getActionUrl() != null && !notification.getActionUrl().isBlank()) {
+            String fullUrl = frontendUrl + notification.getActionUrl();
+            body += "\n\nIngresa aquí: " + fullUrl;
+        }
+
         SimpleMailMessage mensaje = new SimpleMailMessage();
         mensaje.setTo(notification.getUser().getEmail());
         mensaje.setSubject(notification.getTitle());
-        mensaje.setText(notification.getMessage());
+        mensaje.setText(body);
+
         mailSender.send(mensaje);
     }
 
