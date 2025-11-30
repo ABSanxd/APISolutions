@@ -9,7 +9,7 @@ import java.util.UUID;
 import org.hibernate.annotations.UuidGenerator;
 
 import com.api.common.enums.PetLevel;
-import com.api.common.enums.Species;
+import com.api.common.enums.Especies;
 import com.api.common.enums.Status;
 import com.api.modules.user.model.User;
 import com.api.modules.vaccine.model.Vaccine;
@@ -49,7 +49,7 @@ public class Pet {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "species", nullable = false)
-    private Species especie;
+    private Especies especie;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "pet_level", nullable = false)

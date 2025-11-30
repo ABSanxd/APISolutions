@@ -2,7 +2,7 @@ package com.api.modules.pet.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDate; 
-import com.api.common.enums.Species;
+import com.api.common.enums.Especies;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
@@ -17,9 +17,9 @@ public class PetCreateDTO {
     @NotBlank(message = "El nombre es obligatorio")
     @Size(min = 2, max = 100, message = "El nombre debe tener entre 2 y 100 caracteres")
     private String nombre;
-
+    
     @NotNull(message = "La especie es obligatoria")
-    private Species especie;
+    private Especies especie;
 
     @Size(max = 100, message = "La raza no puede exceder 100 caracteres")
     private String breed;
